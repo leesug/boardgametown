@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- ========================================
+         기본 메타 태그
+         ======================================== -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- ========================================
+         SEO 핵심 메타 태그 (구글 검색 최적화)
+         ======================================== -->
+    <title>보드게임타운 | 공평사다리게임, 3D 사다리타기, 그레이트 킹덤, 아줄, 부루마블, 러시안룰렛 - 무료 게임</title>
+    <meta name="description" content="공평사다리게임(3D 원주형 사다리타기), 그레이트 킹덤, 아줄, 부루마블 등 인기 게임을 온라인으로! 원통형 구조로 완벽하게 공정한 사다리타기 게임. 회원가입 없이 무료 플레이!">
+    <meta name="keywords" content="공평사다리게임, 공평사다리, 3D 사다리타기, 3D 사다리, 원주형 사다리, 원통형 사다리타기, 사다리게임, 사다리타기, 공정한 사다리, 온라인 사다리게임, 파티게임, 그레이트 킹덤, 아줄, Azul, 부루마블, 보드게임, 온라인 게임, 전략 게임, 무료 게임, 이세돌, 타일 게임, AI 게임, 웹 게임, 브라우저 게임, 턴제 게임, 2인 게임, 보드게임타운, Board Game Town, 영토 확장 게임, 전략 보드게임, 타일 배치 게임, 부동산 게임">
+    <meta name="author" content="Board Game Town">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="google" content="notranslate">
+    
+    <!-- 언어 및 지역 설정 -->
+    <meta name="language" content="Korean">
+    <meta name="geo.region" content="KR">
+    <meta name="geo.placename" content="South Korea">
+    <meta http-equiv="content-language" content="ko-KR">
+    
+    <!-- ========================================
+         Open Graph 태그 (소셜 미디어 공유 최적화)
+         페이스북, 카카오톡, 네이버 등에서 링크 공유 시 미리보기
+         ======================================== -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Board Game Town - 보드게임타운">
+    <meta property="og:title" content="보드게임타운 - 그레이트 킹덤, 아줄, 부루마블 AI 온라인 보드게임">
+    <meta property="og:description" content="그레이트 킹덤, 아줄(Azul), 부루마블 등 인기 전략 보드게임! AI 대전 및 2인 대전 지원. 회원가입 없이 무료 플레이!">
+    <meta property="og:url" content="https://boardgametown.netlify.app/">
+    <meta property="og:image" content="https://boardgametown.netlify.app/images/great-kingdom-og.jpg">
+    <meta property="og:image:secure_url" content="https://boardgametown.netlify.app/images/great-kingdom-og.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="그레이트 킹덤 보드게임 - 전략적 영토 확장 게임 화면">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:locale:alternate" content="en_US">
+    
+    <!-- ========================================
+         Twitter Card 태그 (트위터 공유 최적화)
+         ======================================== -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="그레이트 킹덤 - AI 온라인 보드게임">
+    <meta name="twitter:description" content="이세돌 9단 디자인! 바둑을 간소화한 전략 게임. AI 대전 및 2인 플레이 지원. 무료!">
+    <meta name="twitter:image" content="https://boardgametown.netlify.app/images/great-kingdom-twitter.jpg">
+    <meta name="twitter:image:alt" content="그레이트 킹덤 게임 스크린샷">
+    <meta name="twitter:site" content="@boardgametown">
+    <meta name="twitter:creator" content="@boardgametown">
+    
+    <!-- ========================================
+         모바일 및 앱 최적화 태그
+         ======================================== -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="그레이트 킹덤">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-TileColor" content="#667eea">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- ========================================
+         정규 URL (Canonical) - 중복 콘텐츠 방지
+         ======================================== -->
+    <link rel="canonical" href="https://boardgametown.netlify.app/">
+    
+    <!-- 대체 언어 버전 (향후 영어 버전 추가 시) -->
+    <link rel="alternate" hreflang="ko" href="https://boardgametown.netlify.app/">
+    <link rel="alternate" hreflang="x-default" href="https://boardgametown.netlify.app/">
+    
+    <!-- ========================================
+         파비콘 (브라우저 탭 아이콘)
+         ======================================== -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <!-- ========================================
+         구조화된 데이터 (JSON-LD Schema.org)
+         구글이 게임 정보를 정확히 이해하도록 도움
+         ======================================== -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "그레이트 킹덤",
+      "alternateName": "Great Kingdom",
+      "description": "이세돌 9단이 디자인한 전략 보드게임. 바둑을 간소화하여 누구나 쉽게 즐길 수 있습니다.",
+      "url": "https://boardgametown.netlify.app/",
+      "image": "https://boardgametown.netlify.app/images/great-kingdom-og.jpg",
+      "author": {
+        "@type": "Person",
+        "name": "이세돌",
+        "description": "프로 바둑 기사 9단"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Board Game Town",
+        "url": "https://boardgametown.netlify.app/"
+      },
+      "genre": ["전략 게임", "보드게임", "턴제 게임"],
+      "gamePlatform": ["웹 브라우저", "PC", "모바일"],
+      "numberOfPlayers": {
+        "@type": "QuantitativeValue",
+        "value": 2
+      },
+      "playMode": ["멀티플레이어", "싱글플레이어"],
+      "applicationCategory": "Game",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "KRW",
+        "availability": "https://schema.org/InStock"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "127",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "inLanguage": "ko-KR",
+      "keywords": "보드게임, 전략게임, AI게임, 온라인게임, 무료게임, 이세돌, 바둑, 공평사다리게임, 러시안룰렛"
+    }
+    </script>
+    
+    <!-- 웹사이트 구조화 데이터 -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Board Game Town",
+      "alternateName": "보드게임타운",
+      "url": "https://boardgametown.netlify.app/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://boardgametown.netlify.app/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    
+    <!-- 빵 부스러기 네비게이션 (Breadcrumb) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "name": "홈",
+        "item": "https://boardgametown.netlify.app/"
+      },{
+        "@type": "ListItem",
+        "position": 2,
+        "name": "그레이트 킹덤",
+        "item": "https://boardgametown.netlify.app/great-kingdom.html"
+      }]
+    }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 헤더 스타일 */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1em;
+        }
+
+        /* 게임 그리드 */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        /* 게임 카드 */
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            animation: fadeInUp 0.6s ease-out;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .game-card:hover::before {
+            opacity: 1;
+        }
+
+        .game-icon {
+            width: 100%;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-size: 6em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-icon::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .game-icon-text {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+        }
+
+        .game-info {
+            padding: 25px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .game-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-title .emoji {
+            font-size: 1.2em;
+        }
+
+        .game-description {
+            color: #666;
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .game-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #777;
+            font-size: 0.9em;
+            background: #f5f5f5;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        .game-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .play-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .play-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Coming Soon 카드 */
+        .coming-soon-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px dashed rgba(102, 126, 234, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            cursor: default;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .coming-soon-card:hover {
+            transform: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .coming-soon-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .coming-soon-text {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .coming-soon-subtitle {
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* 통계 섹션 */
+        .stats-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            border-radius: 15px;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1em;
+        }
+
+        /* 푸터 */
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            color: rgba(255, 255, 255, 0.8);
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .footer p {
+            margin: 10px 0;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            transition: border-color 0.3s ease;
+        }
+
+        .footer a:hover {
+            border-bottom-color: white;
+        }
+
+        /* 애니메이션 */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .header p {
+                font-size: 1.1em;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .game-icon {
+                height: 180px;
+                font-size: 4.5em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 배지 스타일 */
+        .new-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ff4757;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            z-index: 3;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header class="header">
+            <h1>🎲 보드게임 컬렉션 🎲</h1>
+            <p>브라우저에서 즐기는 클래식 보드게임</p>
+            <p class="subtitle">친구들과 함께, 또는 AI와 대결하세요!</p>
+        </header>
+
+        <!-- 통계 섹션 -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">게임 수</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">무료</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="todayVisitors">0</div>
+                    <div class="stat-label">오늘 방문자</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">게임 모드</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 게임 그리드 -->
+        <main class="games-grid">
+            <!-- 그레이트 킹덤 카드 -->
+            <article class="game-card" itemscope itemtype="https://schema.org/Game">
+                <a href="great-kingdom.html" style="text-decoration: none; color: inherit;">
+                    <div class="new-badge">NEW</div>
+                    <div class="game-icon">
+                        <div class="game-icon-text">🏰</div>
+                    </div>
+                    <div class="game-info">
+                        <h2 class="game-title" itemprop="name">
+                            <span class="emoji">👑</span>
+                            그레이트 킹덤
+                        </h2>
+                        <p class="game-description" itemprop="description">
+                            이세돌 9단이 디자인한 전략 보드게임. 바둑을 간소화하여 누구나 쉽게 즐길 수 있습니다. 상대 말을 1개만 잡아도 즉시 승리!
+                        </p>
+                        <div class="game-meta">
+                            <div class="meta-item">
+                                <span>👥</span>
+                                <span itemprop="numberOfPlayers">2인용</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>⏱️</span>
+                                <span>10-20분</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>🧠</span>
+                                <span itemprop="genre">전략</span>
+                            </div>
+                        </div>
+                        <div class="game-tags">
+                            <span class="tag">전략</span>
+                            <span class="tag">영토 확장</span>
+                            <span class="tag">턴제</span>
+                            <span class="tag">AI 대전</span>
+                        </div>
+                        <button class="play-button" onclick="event.preventDefault(); window.location.href='great-kingdom.html';">
+                            <span>🎮</span>
+                            <span>게임 시작</span>
+                        </button>
+                    </div>
+                </a>
+            </article>
+
+            <!-- 아줄 카드 -->
+            <article class="game-card" itemscope itemtype="https://schema.org/Game">
+                <a href="azul.html" style="text-decoration: none; color: inherit;">
+                    <div class="new-badge">NEW</div>
+                    <div class="game-icon">
+                        <div class="game-icon-text">🎨</div>
+                    </div>
+                    <div class="game-info">
+                        <h2 class="game-title" itemprop="name">
+                            <span class="emoji">✨</span>
+                            아줄 (Azul)
+                        </h2>
+                        <p class="game-description" itemprop="description">
+                            포르투갈 타일 예술에서 영감을 받은 전략 게임. 아름다운 타일을 모아 궁전 벽을 장식하고 최고 점수를 획득하세요!
+                        </p>
+                        <div class="game-meta">
+                            <div class="meta-item">
+                                <span>👥</span>
+                                <span itemprop="numberOfPlayers">2인용</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>⏱️</span>
+                                <span>30-45분</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>🧠</span>
+                                <span itemprop="genre">전략</span>
+                            </div>
+                        </div>
+                        <div class="game-tags">
+                            <span class="tag">전략</span>
+                            <span class="tag">타일 배치</span>
+                            <span class="tag">턴제</span>
+                            <span class="tag">AI 대전</span>
+                        </div>
+                        <button class="play-button" onclick="event.preventDefault(); window.location.href='azul.html';">
+                            <span>🎮</span>
+                            <span>게임 시작</span>
+                        </button>
+                    </div>
+                </a>
+            </article>
+
+            <!-- 부루마블 카드 -->
+            <article class="game-card" itemscope itemtype="https://schema.org/Game">
+                <a href="bluemarble.html" style="text-decoration: none; color: inherit;">
+                    <div class="new-badge">NEW</div>
+                    <div class="game-icon">
+                        <div class="game-icon-text">🏠</div>
+                    </div>
+                    <div class="game-info">
+                        <h2 class="game-title" itemprop="name">
+                            <span class="emoji">💰</span>
+                            부루마블
+                        </h2>
+                        <p class="game-description" itemprop="description">
+                            한국의 대표적인 부동산 보드게임! 땅을 사고 통행료를 받으며 부자가 되어보세요. AI와의 빠른 대결로 20-30분 안에 승부!
+                        </p>
+                        <div class="game-meta">
+                            <div class="meta-item">
+                                <span>👥</span>
+                                <span itemprop="numberOfPlayers">2인용</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>⏱️</span>
+                                <span>20-30분</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>🧠</span>
+                                <span itemprop="genre">전략</span>
+                            </div>
+                        </div>
+                        <div class="game-tags">
+                            <span class="tag">전략</span>
+                            <span class="tag">부동산</span>
+                            <span class="tag">턴제</span>
+                            <span class="tag">AI 대전</span>
+                        </div>
+                        <button class="play-button" onclick="event.preventDefault(); window.location.href='bluemarble.html';">
+                            <span>🎮</span>
+                            <span>게임 시작</span>
+                        </button>
+                    </div>
+                </a>
+            </article>
+
+            <!-- 3D 사다리 게임 카드 -->
+            <article class="game-card" itemscope itemtype="https://schema.org/Game">
+                <a href="3d-ladder-game.html" style="text-decoration: none; color: inherit;">
+                    <div class="new-badge">NEW</div>
+                    <div class="game-icon">
+                        <div class="game-icon-text">🎲</div>
+                    </div>
+                    <div class="game-info">
+                        <h2 class="game-title" itemprop="name">
+                            <span class="emoji">🎯</span>
+                            공평사다리게임
+                        </h2>
+                        <p class="game-description" itemprop="description">
+                            원통형 구조로 모든 위치가 공정한 사다리타기! 3D 그래픽으로 실제 사다리를 타는 듯한 재미를 느껴보세요.
+                        </p>
+                        <div class="game-meta">
+                            <div class="meta-item">
+                                <span>👥</span>
+                                <span itemprop="numberOfPlayers">2-12인용</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>⏱️</span>
+                                <span>1-5분</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>🎲</span>
+                                <span itemprop="genre">운</span>
+                            </div>
+                        </div>
+                        <div class="game-tags">
+                            <span class="tag">사다리타기</span>
+                            <span class="tag">3D</span>
+                            <span class="tag">공정성</span>
+                            <span class="tag">파티게임</span>
+                        </div>
+                        <button class="play-button" onclick="event.preventDefault(); window.location.href='3d-ladder-game.html';">
+                            <span>🎮</span>
+                            <span>게임 시작</span>
+                        </button>
+                    </div>
+                </a>
+            </article>
+
+            <!-- 러시안 룰렛 게임 카드 -->
+            <article class="game-card" itemscope itemtype="https://schema.org/Game">
+                <a href="russian-roulette.html" style="text-decoration: none; color: inherit;">
+                    <div class="new-badge">NEW</div>
+                    <div class="game-icon">
+                        <div class="game-icon-text">🔫</div>
+                    </div>
+                    <div class="game-info">
+                        <h2 class="game-title" itemprop="name">
+                            <span class="emoji">🎯</span>
+                            러시안 룰렛
+                        </h2>
+                        <p class="game-description" itemprop="description">
+                            긴장감 넘치는 운의 게임! 참가자들이 순서대로 방아쇠를 당기며 3D 리볼버가 회전합니다. 스릴 넘치는 러시안 룰렛을 경험하세요.
+                        </p>
+                        <div class="game-meta">
+                            <div class="meta-item">
+                                <span>👥</span>
+                                <span itemprop="numberOfPlayers">1-6인용</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>⏱️</span>
+                                <span>1-5분</span>
+                            </div>
+                            <div class="meta-item">
+                                <span>🎲</span>
+                                <span itemprop="genre">운</span>
+                            </div>
+                        </div>
+                        <div class="game-tags">
+                            <span class="tag">스릴</span>
+                            <span class="tag">3D</span>
+                            <span class="tag">운</span>
+                            <span class="tag">긴장감</span>
+                        </div>
+                        <button class="play-button" onclick="event.preventDefault(); window.location.href='russian-roulette.html';">
+                            <span>🎮</span>
+                            <span>게임 시작</span>
+                        </button>
+                    </div>
+                </a>
+            </article>
+
+            <div class="game-card coming-soon-card">
+                <div class="coming-soon-icon">🎴</div>
+                <div class="coming-soon-text">Coming Soon</div>
+                <div class="coming-soon-subtitle">새로운 게임 준비중...</div>
+            </div>
+        </main>
+
+        <!-- 푸터 -->
+        <footer class="footer">
+            <p>© 2025 보드게임 컬렉션 | 모든 게임은 무료로 제공됩니다</p>
+            <p>문의사항이 있으시면 <a href="mailto:contact@boardgametown.com">여기</a>로 연락주세요</p>
+            <p style="margin-top: 20px; font-size: 0.9em;">
+                💡 팁: 모든 게임은 브라우저에서 바로 실행되며, 설치가 필요 없습니다!
+            </p>
+        </footer>
+    </div>
+
+    <!-- 방문자 추적 스크립트 -->
+    <script src="js/visitor-tracker.js"></script>
+
+    <script>
+        // ==========================================
+        // Supabase 연결 정보
+        // ==========================================
+        const SUPABASE_URL = 'https://hoszcmgjmjjximzxdfuk.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhvc3pjbWdqbWpqeGltenhkZnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2NjIxODcsImV4cCI6MjA3NjIzODE4N30.QUE9wCCbrnRHGKbAapPTC_PPxnbRKmwXuJqh16pyZO0';
+
+        // 방문자 추적 초기화
+        let visitorTracker;
+
+        if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
+            visitorTracker = new VisitorTracker(SUPABASE_URL, SUPABASE_KEY);
+
+            // 페이지 로드 시 방문 추적
+            window.addEventListener('load', async () => {
+                try {
+                    // 방문 기록
+                    await visitorTracker.trackVisit();
+
+                    // 방문자 수 UI 업데이트
+                    await visitorTracker.updateVisitorCountUI('todayVisitors');
+                } catch (error) {
+                    console.error('방문자 추적 오류:', error);
+                }
+            });
+        } else {
+            console.warn('⚠️ Supabase 설정이 필요합니다. SUPABASE_URL과 SUPABASE_KEY를 입력하세요.');
+        }
+
+        // 통계 애니메이션
+        function animateStats() {
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers.forEach((stat, index) => {
+                if (stat.textContent !== '∞' && stat.textContent !== '100%') {
+                    const target = parseInt(stat.textContent);
+                    let current = 0;
+                    const increment = target / 20;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            stat.textContent = target;
+                            clearInterval(timer);
+                        } else {
+                            stat.textContent = Math.floor(current);
+                        }
+                    }, 50);
+                }
+            });
+        }
+
+        // 페이지 로드 시 애니메이션 실행
+        window.addEventListener('load', () => {
+            setTimeout(animateStats, 500);
+        });
+
+        // Coming Soon 카드 클릭 시 알림
+        document.querySelectorAll('.coming-soon-card').forEach(card => {
+            card.addEventListener('click', function() {
+                alert('🎮 곧 새로운 게임이 추가될 예정입니다!\n기대해 주세요! 😊');
+            });
+        });
+    </script>
+</body>
+</html>

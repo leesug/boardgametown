@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔫 러시안 룰렛 게임</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            overflow: hidden;
+            color: white;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .blood-drip {
+            position: fixed;
+            width: 20px;
+            height: 0;
+            background: linear-gradient(180deg, #8b0000 0%, #dc143c 100%);
+            border-radius: 0 0 10px 10px;
+            opacity: 0;
+            z-index: 300;
+        }
+
+        @keyframes drip {
+            0% {
+                height: 0;
+                opacity: 1;
+            }
+            100% {
+                height: 100vh;
+                opacity: 0.8;
+            }
+        }
+
+        .blood-splatter {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(139, 0, 0, 0.8) 0%, transparent 40%);
+            opacity: 0;
+            z-index: 250;
+            pointer-events: none;
+        }
+
+        @keyframes splatter {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.3;
+                transform: scale(1.5);
+            }
+        }
+
+        #setupPhase {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 500px;
+            z-index: 100;
+        }
+
+        #setupPhase h1 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        #setupPhase p {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .setting-group {
+            margin: 20px 0;
+        }
+
+        .setting-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .setting-group input[type="number"] {
+            width: 120px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .btn-mode {
+            flex: 1;
+            padding: 15px 20px;
+            border: 3px solid #ddd;
+            border-radius: 12px;
+            background: white;
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .btn-mode:hover {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+        }
+
+        .btn-mode.active {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-color: #e74c3c;
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-mode .mode-title {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .btn-mode .mode-desc {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+        }
+
+        #gamePhase {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+
+        #gamePhase.active {
+            display: block;
+        }
+
+        #info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            border-radius: 15px;
+            z-index: 50;
+            text-align: center;
+        }
+
+        #info h2 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        #chambersDisplay {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .chamber {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #666;
+            border-radius: 50%;
+            background: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .chamber.current {
+            border-color: #e74c3c;
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.8);
+            transform: scale(1.2);
+        }
+
+        .chamber.bullet {
+            background: #c0392b;
+        }
+
+        .chamber.empty {
+            background: #27ae60;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 50;
+            align-items: center;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-action:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-load {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+
+        .btn-spin {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn-fire {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            font-size: 20px;
+            padding: 20px 50px;
+        }
+
+        .btn-fire:hover:not(:disabled) {
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+        }
+
+        .btn-home {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        }
+
+        #resultPopup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #resultPopup.active {
+            display: flex;
+        }
+
+        .result-content {
+            background: white;
+            padding: 40px 50px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .result-content h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .result-content.survived h2 {
+            color: #27ae60;
+        }
+
+        .result-content.died h2 {
+            color: #e74c3c;
+        }
+
+        .result-content p {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .stat-text {
+            color: #bbb;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        #statusMessage {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: 700;
+            z-index: 150;
+            display: none;
+            text-align: center;
+        }
+
+        #statusMessage.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="bloodSplatter" class="blood-splatter"></div>
+
+    <!-- Setup Phase -->
+    <div id="setupPhase">
+        <h1>🔫 러시안 룰렛</h1>
+        <p>6발 리볼버에 총알 1발을 장전하고 운을 시험하세요</p>
+
+        <div class="setting-group">
+            <label>게임 모드</label>
+            <div class="mode-buttons">
+                <button class="btn-mode active" onclick="selectMode('single')">
+                    <div class="mode-title">🔄 한번 회전</div>
+                    <div class="mode-desc">처음에만 실린더 회전</div>
+                </button>
+                <button class="btn-mode" onclick="selectMode('multi')">
+                    <div class="mode-title">🎲 매번 회전</div>
+                    <div class="mode-desc">쏠 때마다 실린더 회전</div>
+                </button>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <label>참가자 수</label>
+            <input type="number" id="playerCount" min="1" max="6" value="2">
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <button class="btn-start" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); box-shadow: 0 4px 15px rgba(100, 116, 139, 0.4);" onclick="window.location.href='index.html'" onmouseover="this.style.boxShadow='0 6px 20px rgba(100, 116, 139, 0.6)'" onmouseout="this.style.boxShadow='0 4px 15px rgba(100, 116, 139, 0.4)'">🏠 홈으로</button>
+            <button class="btn-start" onclick="startGame()">게임 시작</button>
+        </div>
+    </div>
+
+    <!-- Game Phase -->
+    <div id="gamePhase">
+        <div id="info">
+            <h2>🎯 러시안 룰렛</h2>
+            <div id="chambersDisplay"></div>
+            <p class="stat-text">
+                <span id="currentPlayer">플레이어 1</span> |
+                총 시도: <span id="totalAttempts">0</span>
+            </p>
+        </div>
+
+        <div id="statusMessage"></div>
+
+        <div id="controls">
+            <div class="control-row">
+                <button class="btn-action btn-fire" onclick="pullTrigger()" id="btnFire">💥 방아쇠 당기기</button>
+            </div>
+            <div class="control-row">
+                <button class="btn-action" onclick="resetGame()">🔁 다시 시작</button>
+                <button class="btn-action btn-home" onclick="window.location.href='index.html'">🏠 홈으로</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Popup -->
+    <div id="resultPopup">
+        <div class="result-content" id="resultContent">
+            <h2 id="resultTitle"></h2>
+            <p id="resultMessage"></p>
+            <div class="result-buttons">
+                <button class="btn-action" onclick="resetGame()">다시 도전</button>
+                <button class="btn-action btn-home" onclick="window.location.href='index.html'">홈으로</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Files -->
+    <audio id="audioSpin" preload="auto">
+        <source src="sounds/실린더회전.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="audioClick" preload="auto">
+        <source src="sounds/빈권총소리.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="audioGunshot" preload="auto">
+        <source src="sounds/권총발사.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer;
+        let revolver, cylinder, bullet;
+        let chamberCount = 6; // Always 6 chambers
+        let bulletPosition = 0;
+        let currentChamber = 0;
+        let currentPlayer = 1;
+        let totalAttempts = 0;
+        let maxPlayers = 2; // Number of players (2-6)
+        let gameMode = 'single'; // 'single' or 'multi'
+        let isAnimating = false;
+        let gameStarted = false;
+        let autoFireTimer = null; // Timer for auto-fire after one rotation
+        let autoFireDuration = 21000; // 21 seconds for auto-fire
+
+        // Audio elements
+        const audioSpin = document.getElementById('audioSpin');
+        const audioClick = document.getElementById('audioClick');
+        const audioGunshot = document.getElementById('audioGunshot');
+
+        // Player positions (angles in radians)
+        function getPlayerAngles(playerCount) {
+            const angles = [];
+            for (let i = 0; i < playerCount; i++) {
+                angles.push((Math.PI * 2 * i) / playerCount);
+            }
+            return angles;
+        }
+
+        function playClick() {
+            // 빈 권총 소리 재생
+            audioClick.currentTime = 0;
+            audioClick.volume = 0.6;
+            audioClick.play().catch(err => console.log('Audio play failed:', err));
+        }
+
+        function playGunshot() {
+            // 권총 발사 소리 재생
+            audioGunshot.currentTime = 0;
+            audioGunshot.volume = 0.8;
+            audioGunshot.play().catch(err => console.log('Audio play failed:', err));
+        }
+
+        function playMetallic() {
+            // 실린더 회전 소리 재생
+            audioSpin.currentTime = 0;
+            audioSpin.volume = 0.5;
+            audioSpin.play().catch(err => console.log('Audio play failed:', err));
+        }
+
+        function startAutoFireTimer() {
+            // Clear any existing timer
+            if (autoFireTimer) {
+                clearTimeout(autoFireTimer);
+            }
+
+            // Start new timer for auto-fire
+            autoFireTimer = setTimeout(() => {
+                if (!isAnimating && gameStarted) {
+                    // Force death by setting current chamber to bullet position
+                    currentChamber = bulletPosition;
+                    // Auto-fire the gun
+                    pullTrigger();
+                }
+            }, autoFireDuration);
+        }
+
+        function cancelAutoFireTimer() {
+            if (autoFireTimer) {
+                clearTimeout(autoFireTimer);
+                autoFireTimer = null;
+            }
+        }
+
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.background = null;
+
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2, 8);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 5);
+            scene.add(directionalLight);
+
+            const pointLight = new THREE.PointLight(0xff6b6b, 0.5);
+            pointLight.position.set(-5, 5, 5);
+            scene.add(pointLight);
+
+            createRevolver();
+            animate3D();
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function createRevolver() {
+            revolver = new THREE.Group();
+
+            // Material definitions
+            const gunMetal = new THREE.MeshStandardMaterial({
+                color: 0x2c3e50,
+                metalness: 0.9,
+                roughness: 0.2
+            });
+            const darkMetal = new THREE.MeshStandardMaterial({
+                color: 0x1a1a1a,
+                metalness: 0.8,
+                roughness: 0.3
+            });
+            const wood = new THREE.MeshStandardMaterial({
+                color: 0x5d4037,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+
+            // Main Cylinder
+            const cylinderGeometry = new THREE.CylinderGeometry(1.2, 1.2, 0.8, chamberCount, 1);
+            cylinder = new THREE.Mesh(cylinderGeometry, gunMetal);
+            cylinder.rotation.x = Math.PI / 2;
+            revolver.add(cylinder);
+
+            // Cylinder front face detail
+            const cylinderFrontGeometry = new THREE.CylinderGeometry(1.25, 1.25, 0.05, chamberCount);
+            const cylinderFront = new THREE.Mesh(cylinderFrontGeometry, darkMetal);
+            cylinderFront.position.z = 0.45;
+            cylinderFront.rotation.x = Math.PI / 2;
+            revolver.add(cylinderFront);
+
+            // Cylinder back face detail
+            const cylinderBackGeometry = new THREE.CylinderGeometry(1.25, 1.25, 0.05, chamberCount);
+            const cylinderBack = new THREE.Mesh(cylinderBackGeometry, darkMetal);
+            cylinderBack.position.z = -0.45;
+            cylinderBack.rotation.x = Math.PI / 2;
+            revolver.add(cylinderBack);
+
+            // Chamber holes
+            const angleStep = (Math.PI * 2) / chamberCount;
+            for (let i = 0; i < chamberCount; i++) {
+                const angle = i * angleStep;
+                const x = Math.cos(angle) * 0.9;
+                const z = Math.sin(angle) * 0.9;
+
+                const chamberGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.9, 16);
+                const chamberMesh = new THREE.Mesh(chamberGeometry, darkMetal);
+                chamberMesh.position.set(x, 0, z);
+                chamberMesh.rotation.x = Math.PI / 2;
+                revolver.add(chamberMesh);
+            }
+
+            // Center pin
+            const pinGeometry = new THREE.CylinderGeometry(0.15, 0.15, 1.0, 16);
+            const pin = new THREE.Mesh(pinGeometry, new THREE.MeshStandardMaterial({
+                color: 0xc0c0c0,
+                metalness: 1.0,
+                roughness: 0.1
+            }));
+            pin.rotation.x = Math.PI / 2;
+            revolver.add(pin);
+
+            // Barrel - main tube
+            const barrelGeometry = new THREE.CylinderGeometry(0.22, 0.26, 3.5, 32);
+            const barrel = new THREE.Mesh(barrelGeometry, gunMetal);
+            barrel.position.set(0, 0, -2.25);
+            barrel.rotation.x = Math.PI / 2;
+            revolver.add(barrel);
+
+            // Barrel tip (muzzle)
+            const muzzleGeometry = new THREE.CylinderGeometry(0.26, 0.28, 0.15, 32);
+            const muzzle = new THREE.Mesh(muzzleGeometry, darkMetal);
+            muzzle.position.set(0, 0, -4.1);
+            muzzle.rotation.x = Math.PI / 2;
+            revolver.add(muzzle);
+
+            // Barrel inner hole
+            const barrelHoleGeometry = new THREE.CylinderGeometry(0.12, 0.12, 3.7, 16);
+            const barrelHole = new THREE.Mesh(barrelHoleGeometry, new THREE.MeshStandardMaterial({
+                color: 0x000000,
+                metalness: 0.5,
+                roughness: 0.8
+            }));
+            barrelHole.position.set(0, 0, -2.3);
+            barrelHole.rotation.x = Math.PI / 2;
+            revolver.add(barrelHole);
+
+            // Front sight
+            const frontSightGeometry = new THREE.BoxGeometry(0.08, 0.3, 0.15);
+            const frontSight = new THREE.Mesh(frontSightGeometry, darkMetal);
+            frontSight.position.set(0, 0.25, -3.5);
+            revolver.add(frontSight);
+
+            // Frame - connects barrel to handle
+            const frameGeometry = new THREE.BoxGeometry(0.4, 1.2, 1.8);
+            const frame = new THREE.Mesh(frameGeometry, gunMetal);
+            frame.position.set(0, -0.3, -0.3);
+            revolver.add(frame);
+
+            // Trigger guard - more refined curve
+            const triggerGuardCurve = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(0.25, -0.4, 0.6),
+                new THREE.Vector3(0.25, -0.7, 0.5),
+                new THREE.Vector3(0.25, -1.0, 0.3),
+                new THREE.Vector3(0.25, -1.1, 0.0),
+                new THREE.Vector3(0.25, -1.0, -0.2),
+                new THREE.Vector3(0.25, -0.7, -0.3),
+                new THREE.Vector3(0.25, -0.5, -0.3)
+            ]);
+            const triggerGuardGeometry = new THREE.TubeGeometry(triggerGuardCurve, 30, 0.06, 12, false);
+            const triggerGuard = new THREE.Mesh(triggerGuardGeometry, gunMetal);
+            revolver.add(triggerGuard);
+
+            // Trigger - more realistic shape with curved design
+            const triggerShape = new THREE.Shape();
+            triggerShape.moveTo(0, 0);
+            triggerShape.lineTo(0.05, -0.35);
+            triggerShape.quadraticCurveTo(0.08, -0.42, 0.05, -0.48);
+            triggerShape.lineTo(-0.05, -0.48);
+            triggerShape.quadraticCurveTo(-0.08, -0.42, -0.05, -0.35);
+            triggerShape.lineTo(0, 0);
+
+            const triggerExtrudeSettings = {
+                steps: 1,
+                depth: 0.12,
+                bevelEnabled: true,
+                bevelThickness: 0.02,
+                bevelSize: 0.02,
+                bevelSegments: 2
+            };
+
+            const triggerGeometry = new THREE.ExtrudeGeometry(triggerShape, triggerExtrudeSettings);
+            const trigger = new THREE.Mesh(triggerGeometry, darkMetal);
+            trigger.position.set(0.19, -0.65, 0.1);
+            trigger.rotation.z = -0.15;
+            revolver.add(trigger);
+
+            // Hammer
+            const hammerBodyGeometry = new THREE.BoxGeometry(0.3, 0.6, 0.2);
+            const hammerBody = new THREE.Mesh(hammerBodyGeometry, darkMetal);
+            hammerBody.position.set(0, 0.3, 0.8);
+            hammerBody.rotation.x = -0.3;
+            revolver.add(hammerBody);
+
+            const hammerTopGeometry = new THREE.BoxGeometry(0.25, 0.15, 0.15);
+            const hammerTop = new THREE.Mesh(hammerTopGeometry, darkMetal);
+            hammerTop.position.set(0, 0.55, 0.65);
+            revolver.add(hammerTop);
+
+            // Rear sight
+            const rearSightGeometry = new THREE.BoxGeometry(0.35, 0.2, 0.1);
+            const rearSight = new THREE.Mesh(rearSightGeometry, darkMetal);
+            rearSight.position.set(0, 0.15, 0.6);
+            revolver.add(rearSight);
+
+            // Handle (grip) - main body with ergonomic curve
+            const handleShape = new THREE.Shape();
+            handleShape.moveTo(0, 0);
+            handleShape.lineTo(0.18, -0.25);
+            handleShape.quadraticCurveTo(0.22, -0.5, 0.24, -0.8);
+            handleShape.lineTo(0.25, -1.2);
+            handleShape.quadraticCurveTo(0.24, -1.5, 0.22, -1.7);
+            handleShape.lineTo(0.18, -1.85);
+            handleShape.lineTo(0.1, -1.95);
+            handleShape.lineTo(-0.1, -1.95);
+            handleShape.lineTo(-0.18, -1.85);
+            handleShape.lineTo(-0.22, -1.7);
+            handleShape.quadraticCurveTo(-0.24, -1.5, -0.25, -1.2);
+            handleShape.lineTo(-0.24, -0.8);
+            handleShape.quadraticCurveTo(-0.22, -0.5, -0.18, -0.25);
+            handleShape.lineTo(0, 0);
+
+            const extrudeSettings = {
+                steps: 2,
+                depth: 0.55,
+                bevelEnabled: true,
+                bevelThickness: 0.08,
+                bevelSize: 0.06,
+                bevelSegments: 4
+            };
+
+            const handleGeometry = new THREE.ExtrudeGeometry(handleShape, extrudeSettings);
+            const handle = new THREE.Mesh(handleGeometry, wood);
+            handle.position.set(-0.275, -0.5, 0.275);
+            revolver.add(handle);
+
+            // Grip texture grooves (checkering pattern)
+            for (let i = 0; i < 6; i++) {
+                const grooveGeometry = new THREE.BoxGeometry(0.02, 0.2, 0.5);
+                const grooveMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x4a3528,
+                    roughness: 0.95,
+                    metalness: 0.05
+                });
+                const groove = new THREE.Mesh(grooveGeometry, grooveMaterial);
+                groove.position.set(0.28, -0.9 - (i * 0.15), 0.55);
+                revolver.add(groove);
+            }
+
+            // Grip screws with better detail
+            const screwGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.6, 12);
+            const screwMaterial = new THREE.MeshStandardMaterial({
+                color: 0xd4af37,
+                metalness: 0.95,
+                roughness: 0.15
+            });
+
+            // Top screw
+            const screw1 = new THREE.Mesh(screwGeometry, screwMaterial);
+            screw1.position.set(0, -0.75, 0.55);
+            screw1.rotation.z = Math.PI / 2;
+            revolver.add(screw1);
+
+            // Screw head detail
+            const screwHeadGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.04, 12);
+            const screwHead1 = new THREE.Mesh(screwHeadGeometry, screwMaterial);
+            screwHead1.position.set(0.31, -0.75, 0.55);
+            screwHead1.rotation.z = Math.PI / 2;
+            revolver.add(screwHead1);
+
+            // Middle screw
+            const screw2 = new THREE.Mesh(screwGeometry, screwMaterial);
+            screw2.position.set(0, -1.25, 0.55);
+            screw2.rotation.z = Math.PI / 2;
+            revolver.add(screw2);
+
+            const screwHead2 = new THREE.Mesh(screwHeadGeometry, screwMaterial);
+            screwHead2.position.set(0.31, -1.25, 0.55);
+            screwHead2.rotation.z = Math.PI / 2;
+            revolver.add(screwHead2);
+
+            // Bottom screw
+            const screw3 = new THREE.Mesh(screwGeometry, screwMaterial);
+            screw3.position.set(0, -1.65, 0.55);
+            screw3.rotation.z = Math.PI / 2;
+            revolver.add(screw3);
+
+            const screwHead3 = new THREE.Mesh(screwHeadGeometry, screwMaterial);
+            screwHead3.position.set(0.31, -1.65, 0.55);
+            screwHead3.rotation.z = Math.PI / 2;
+            revolver.add(screwHead3);
+
+            // Bottom of handle (butt) - more detailed
+            const buttGeometry = new THREE.BoxGeometry(0.45, 0.18, 0.65);
+            const butt = new THREE.Mesh(buttGeometry, wood);
+            butt.position.set(0, -2.0, 0.55);
+            revolver.add(butt);
+
+            // Butt cap metal plate
+            const buttCapGeometry = new THREE.BoxGeometry(0.42, 0.05, 0.62);
+            const buttCap = new THREE.Mesh(buttCapGeometry, new THREE.MeshStandardMaterial({
+                color: 0xc0c0c0,
+                metalness: 0.9,
+                roughness: 0.2
+            }));
+            buttCap.position.set(0, -2.1, 0.55);
+            revolver.add(buttCap);
+
+            scene.add(revolver);
+        }
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+
+            if (!isAnimating) {
+                revolver.rotation.y += 0.005;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function showStatus(message, duration = 2000) {
+            const statusMsg = document.getElementById('statusMessage');
+            statusMsg.textContent = message;
+            statusMsg.classList.add('active');
+
+            setTimeout(() => {
+                statusMsg.classList.remove('active');
+            }, duration);
+        }
+
+        function selectMode(mode) {
+            // Update gameMode variable
+            gameMode = mode;
+
+            // Update button active states
+            const buttons = document.querySelectorAll('.btn-mode');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Add active class to clicked button
+            event.target.closest('.btn-mode').classList.add('active');
+        }
+
+        function startGame() {
+            // gameMode is already set by selectMode()
+            // Get player count
+            maxPlayers = parseInt(document.getElementById('playerCount').value);
+            if (maxPlayers < 1) maxPlayers = 1;
+            if (maxPlayers > 6) maxPlayers = 6;
+
+            // Initialize game variables
+            bulletPosition = Math.floor(Math.random() * chamberCount);
+            currentChamber = 0;
+            currentPlayer = 1;
+            totalAttempts = 0;
+            gameStarted = true;
+
+            document.getElementById('setupPhase').style.display = 'none';
+            document.getElementById('gamePhase').classList.add('active');
+
+            // Recreate revolver
+            if (revolver) {
+                scene.remove(revolver);
+            }
+            createRevolver();
+
+            // Load bullet and spin cylinder (initial setup)
+            loadBulletAndSpin();
+        }
+
+        function loadBulletAndSpin() {
+            isAnimating = true;
+            showStatus('🔫 총알 장전 및 실린더 회전 중...', 3000);
+            playMetallic();
+
+            // Create bullet
+            const angleStep = (Math.PI * 2) / chamberCount;
+            const angle = bulletPosition * angleStep;
+            const x = Math.cos(angle) * 0.9;
+            const z = Math.sin(angle) * 0.9;
+
+            const bulletGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 16);
+            const bulletMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffd700,
+                metalness: 0.9,
+                roughness: 0.1,
+                emissive: 0xaa8800,
+                emissiveIntensity: 0.3
+            });
+
+            if (bullet) {
+                revolver.remove(bullet);
+            }
+
+            bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+            bullet.position.set(x, -2, z);
+            bullet.rotation.x = Math.PI / 2;
+            revolver.add(bullet);
+
+            // Animate bullet loading
+            const startY = bullet.position.y;
+            const endY = 0.3;
+            const loadDuration = 1500;
+            const loadStartTime = Date.now();
+
+            function animateLoad() {
+                const elapsed = Date.now() - loadStartTime;
+                const progress = Math.min(elapsed / loadDuration, 1);
+                bullet.position.y = startY + (endY - startY) * progress;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateLoad);
+                } else {
+                    // After loading, spin cylinder and rotate gun to first player
+                    setTimeout(() => {
+                        spinCylinderAnimation(() => {
+                            rotateGunToPlayer(currentPlayer, () => {
+                                updateDisplay();
+                                showStatus(`${currentPlayer}번 플레이어 차례입니다`, 1500);
+                                isAnimating = false;
+                                // Start auto-fire timer after gun rotation completes
+                                startAutoFireTimer();
+                            });
+                        });
+                    }, 500);
+                }
+            }
+
+            animateLoad();
+        }
+
+        function spinCylinderAnimation(callback) {
+            playMetallic();
+
+            const spins = 3 + Math.random() * 2;
+            const duration = 1500;
+            const startTime = Date.now();
+
+            function animateSpin() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+
+                cylinder.rotation.y = easeOut * spins * Math.PI * 2;
+                if (bullet) {
+                    bullet.rotation.z = easeOut * spins * Math.PI * 2;
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateSpin);
+                } else {
+                    if (callback) callback();
+                }
+            }
+
+            animateSpin();
+        }
+
+        function rotateGunToPlayer(playerNumber, callback) {
+            // Calculate target angle for this player
+            const playerAngles = getPlayerAngles(maxPlayers);
+            const targetAngle = playerAngles[playerNumber - 1];
+
+            // Rotate camera and revolver
+            const duration = 1000;
+            const startTime = Date.now();
+            const startCameraY = camera.position.y;
+            const startCameraAngle = Math.atan2(camera.position.x, camera.position.z);
+
+            // Revolver should face the player (opposite direction)
+            const revolverStartY = revolver.rotation.y;
+            const revolverTargetY = targetAngle + Math.PI; // Face the player
+
+            function animateRotation() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+
+                // Rotate camera to player position
+                const currentAngle = startCameraAngle + (targetAngle - startCameraAngle) * easeOut;
+                const radius = 8;
+                camera.position.x = Math.sin(currentAngle) * radius;
+                camera.position.z = Math.cos(currentAngle) * radius;
+                camera.position.y = startCameraY;
+                camera.lookAt(0, 0, 0);
+
+                // Rotate revolver to face player
+                revolver.rotation.y = revolverStartY + (revolverTargetY - revolverStartY) * easeOut;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateRotation);
+                } else {
+                    if (callback) callback();
+                }
+            }
+
+            animateRotation();
+        }
+
+        function updateDisplay() {
+            const chambersDisplay = document.getElementById('chambersDisplay');
+            chambersDisplay.innerHTML = '';
+
+            for (let i = 0; i < chamberCount; i++) {
+                const chamber = document.createElement('div');
+                chamber.className = 'chamber';
+
+                if (i === currentChamber) {
+                    chamber.classList.add('current');
+                }
+
+                chambersDisplay.appendChild(chamber);
+            }
+
+            document.getElementById('currentPlayer').textContent = `플레이어 ${currentPlayer}`;
+            document.getElementById('totalAttempts').textContent = totalAttempts;
+        }
+
+        function pullTrigger() {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            // Cancel auto-fire timer when player pulls trigger
+            cancelAutoFireTimer();
+
+            document.getElementById('btnFire').disabled = true;
+            totalAttempts++;
+
+            // Trigger animation
+            const recoilAmount = 0.3;
+            const duration = 300;
+            const startTime = Date.now();
+
+            function animateRecoil() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                if (progress < 0.5) {
+                    revolver.position.z = -progress * recoilAmount * 2;
+                } else {
+                    revolver.position.z = -(1 - progress) * recoilAmount * 2;
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateRecoil);
+                } else {
+                    revolver.position.z = 0;
+                    checkResult();
+                }
+            }
+
+            animateRecoil();
+        }
+
+        function checkResult() {
+            const chambers = document.querySelectorAll('.chamber');
+
+            if (currentChamber === bulletPosition) {
+                // BANG! Game Over - Play sound first
+                playGunshot();
+
+                // Wait 2 seconds after sound starts, then show visual effects
+                setTimeout(() => {
+                    chambers[currentChamber].classList.add('bullet');
+                    chambers[currentChamber].textContent = '💥';
+                    showStatus('💥 BANG!!!', 2000);
+
+                    // Blood effects
+                    const splatter = document.getElementById('bloodSplatter');
+                    splatter.style.animation = 'splatter 2s ease-out forwards';
+
+                    for (let i = 0; i < 10; i++) {
+                        setTimeout(() => createBloodDrip(), i * 100);
+                    }
+
+                    setTimeout(() => {
+                        showResult();
+                    }, 2000);
+                }, 2000);
+            } else {
+                // Click! Survived - Play sound first
+                playClick();
+
+                // Wait 2 seconds after sound starts, then show result
+                setTimeout(() => {
+                    chambers[currentChamber].classList.add('empty');
+                    chambers[currentChamber].textContent = '✓';
+                    showStatus(`딸각! ${currentPlayer}번 플레이어 생존!`, 1500);
+
+                    setTimeout(() => {
+                        // Move to next player
+                        currentPlayer++;
+                        if (currentPlayer > maxPlayers) {
+                            currentPlayer = 1; // Loop back to player 1
+                        }
+
+                        // Multi mode: Spin cylinder every time
+                        if (gameMode === 'multi') {
+                            // Randomize bullet position and reset chamber
+                            bulletPosition = Math.floor(Math.random() * chamberCount);
+                            currentChamber = 0;
+
+                            // Spin cylinder, then rotate gun to next player
+                            isAnimating = true;
+                            spinCylinderAnimation(() => {
+                                rotateGunToPlayer(currentPlayer, () => {
+                                    isAnimating = false;
+                                    document.getElementById('btnFire').disabled = false;
+                                    updateDisplay();
+                                    showStatus(`${currentPlayer}번 플레이어 차례입니다`, 1500);
+                                    // Restart auto-fire timer for next player
+                                    startAutoFireTimer();
+                                });
+                            });
+                        } else {
+                            // Single mode: Just advance chamber and rotate gun
+                            currentChamber = (currentChamber + 1) % chamberCount;
+
+                            // Rotate gun to next player and continue
+                            isAnimating = true;
+                            rotateGunToPlayer(currentPlayer, () => {
+                                isAnimating = false;
+                                document.getElementById('btnFire').disabled = false;
+                                updateDisplay();
+                                showStatus(`${currentPlayer}번 플레이어 차례입니다`, 1500);
+                                // Restart auto-fire timer for next player
+                                startAutoFireTimer();
+                            });
+                        }
+                    }, 1500);
+                }, 2000);
+            }
+        }
+
+        function createBloodDrip() {
+            const drip = document.createElement('div');
+            drip.className = 'blood-drip';
+            drip.style.left = Math.random() * window.innerWidth + 'px';
+            drip.style.top = '0';
+            drip.style.animation = `drip ${1 + Math.random() * 2}s ease-in forwards`;
+            drip.style.animationDelay = Math.random() * 0.5 + 's';
+            document.body.appendChild(drip);
+
+            setTimeout(() => {
+                drip.remove();
+            }, 3500);
+        }
+
+        function showResult() {
+            const resultPopup = document.getElementById('resultPopup');
+            const resultContent = document.getElementById('resultContent');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+
+            resultContent.className = 'result-content died';
+            resultTitle.textContent = '💀 게임 오버';
+
+            if (maxPlayers === 1) {
+                resultMessage.textContent = `${totalAttempts}번째 시도에서 총알을 맞았습니다`;
+            } else {
+                resultMessage.textContent = `${currentPlayer}번 플레이어가 ${totalAttempts}번째 시도에서 총알을 맞았습니다`;
+            }
+
+            resultPopup.classList.add('active');
+        }
+
+        function resetGame() {
+            // Reset UI
+            document.getElementById('resultPopup').classList.remove('active');
+            document.getElementById('gamePhase').classList.remove('active');
+            document.getElementById('setupPhase').style.display = 'block';
+
+            // Reset game state
+            gameStarted = false;
+            currentPlayer = 1;
+            totalAttempts = 0;
+            currentChamber = 0;
+            isAnimating = false;
+
+            // Reset blood effects
+            const splatter = document.getElementById('bloodSplatter');
+            splatter.style.animation = 'none';
+            splatter.style.opacity = '0';
+
+            // Remove revolver
+            if (scene && revolver) {
+                scene.remove(revolver);
+                revolver = null;
+                bullet = null;
+            }
+
+            // Remove any remaining blood drips
+            document.querySelectorAll('.blood-drip').forEach(drip => drip.remove());
+
+            // Re-enable button
+            document.getElementById('btnFire').disabled = false;
+        }
+
+        // Initialize 3D scene when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            init3D();
+        });
+    </script>
+</body>
+</html>

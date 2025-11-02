@@ -1,0 +1,2849 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>그레이트 킹덤 (Great Kingdom)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .game-header .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .game-content {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-board-container {
+            flex: 0 0 auto;
+        }
+
+        .game-info {
+            flex: 0 0 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .info-panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .game-board {
+            display: inline-grid;
+            grid-template-columns: repeat(9, 50px);
+            grid-template-rows: repeat(9, 50px);
+            gap: 0;
+            background: #deb887;
+            border: 3px solid #8b4513;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #a0826d;
+            background: #f5deb3;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .cell:hover:not(.occupied) {
+            background: #ffeaa7;
+            transform: scale(1.05);
+        }
+
+        .cell.occupied {
+            cursor: not-allowed;
+        }
+
+        .cell.center {
+            background: #d4a574;
+        }
+
+        .stone {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .stone.blue {
+            background: linear-gradient(145deg, #4a90e2, #2e5c8a);
+            color: white;
+        }
+
+        .stone.orange {
+            background: linear-gradient(145deg, #ff9500, #cc7700);
+            color: white;
+        }
+
+        .stone.neutral {
+            background: linear-gradient(145deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+
+        .current-turn {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .current-turn.blue-turn {
+            background: #4a90e2;
+            color: white;
+        }
+
+        .current-turn.orange-turn {
+            background: #ff9500;
+            color: white;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .player-name {
+            font-weight: bold;
+        }
+
+        .player-name.blue {
+            color: #4a90e2;
+        }
+
+        .player-name.orange {
+            color: #ff9500;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-pass {
+            background: #95a5a6;
+        }
+
+        .btn-pass:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-restart {
+            background: #e74c3c;
+        }
+
+        .btn-restart:hover {
+            background: #c0392b;
+        }
+
+        .btn-mode {
+            background: #667eea;
+        }
+
+        .btn-mode:hover {
+            background: #5568d3;
+        }
+
+        .btn-difficulty {
+            font-size: 0.95em;
+        }
+
+        .btn-easy {
+            background: #2ecc71;
+        }
+
+        .btn-easy:hover {
+            background: #27ae60;
+        }
+
+        .btn-medium {
+            background: #f39c12;
+        }
+
+        .btn-medium:hover {
+            background: #e67e22;
+        }
+
+        .btn-hard {
+            background: #e74c3c;
+        }
+
+        .btn-hard:hover {
+            background: #c0392b;
+        }
+
+        .btn-difficulty.active {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        .game-log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .log-entry {
+            padding: 5px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+        }
+
+        .modal-content h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-content p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #666;
+        }
+
+        .winner-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: bounce-in 0.8s ease-out;
+        }
+
+        /* 화려한 승리 세레모니 */
+        @keyframes bounce-in {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 215, 0, 0.8); }
+        }
+
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confetti-fall 3s linear;
+        }
+
+        .modal-content.victory {
+            animation: glow 2s infinite, scale-pulse 0.5s ease-out;
+            background: linear-gradient(135deg, #fff 0%, #ffe 100%);
+        }
+
+        /* 대기실 스타일 */
+        .room-selection {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .room-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            position: relative;
+        }
+
+        .room-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .room-card.full {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .room-card.waiting {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            animation: pulse 2s infinite;
+        }
+
+        .room-card.playing {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .room-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .room-status {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .room-players {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .modal-content.large {
+            max-width: 800px;
+            width: 90%;
+        }
+
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .countdown-overlay.active {
+            display: flex;
+        }
+
+        .countdown-number {
+            font-size: 10em;
+            color: white;
+            font-weight: bold;
+            animation: countdown-pulse 1s ease-in-out;
+        }
+
+        @keyframes countdown-pulse {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .warning-banner {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+            text-align: center;
+            animation: pulse 1.5s infinite;
+            display: none;
+        }
+
+        .warning-banner.active {
+            display: block;
+        }
+
+        .reconnect-btn {
+            background: #00c853;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .reconnect-btn:hover {
+            background: #00a344;
+            transform: scale(1.05);
+        }
+
+        @keyframes scale-pulse {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .victory-text {
+            font-size: 3em;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: gradient-shift 2s linear infinite;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .firework {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: firework-burst 1s ease-out;
+        }
+
+        @keyframes firework-burst {
+            0% { transform: translate(0, 0); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)); opacity: 0; }
+        }
+
+        /* 대기방 모달 */
+        .waiting-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .waiting-modal.active {
+            display: flex;
+        }
+
+        .waiting-content {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            min-width: 400px;
+        }
+
+        .waiting-content h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .waiting-spinner {
+            width: 80px;
+            height: 80px;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .waiting-status {
+            font-size: 1.2em;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .waiting-players {
+            font-size: 1.1em;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .btn-cancel-waiting {
+            margin-top: 30px;
+            background: #e74c3c;
+        }
+
+        .btn-cancel-waiting:hover {
+            background: #c0392b;
+        }
+
+        .matched-animation {
+            animation: matched-bounce 0.6s ease-out;
+        }
+
+        @keyframes matched-bounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .online-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #2ecc71;
+            border-radius: 50%;
+            margin-left: 8px;
+            animation: pulse-online 2s infinite;
+        }
+
+        @keyframes pulse-online {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 턴 타이머 */
+        .turn-timer {
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+        }
+
+        .timer-label {
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .timer-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .timer-display.warning {
+            color: #ffeb3b;
+            animation: timer-pulse 0.5s infinite;
+        }
+
+        .timer-display.danger {
+            color: #ff5252;
+            animation: timer-shake 0.2s infinite;
+        }
+
+        @keyframes timer-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes timer-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .timer-progress {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .timer-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 4px;
+            transition: width 1s linear, background-color 0.3s;
+        }
+
+        .timer-progress-bar.warning {
+            background: linear-gradient(90deg, #FFC107, #FFD54F);
+        }
+
+        .timer-progress-bar.danger {
+            background: linear-gradient(90deg, #F44336, #E57373);
+        }
+
+        .rules-section {
+            text-align: left;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+
+        .rules-section h4 {
+            color: #667eea;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .rules-section ul {
+            margin-left: 20px;
+        }
+
+        .rules-section li {
+            margin-bottom: 5px;
+        }
+
+        .ai-level-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .level-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .level-select:hover {
+            border-color: #5568d3;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .level-select:focus {
+            outline: none;
+            border-color: #5568d3;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .level-description {
+            padding: 10px;
+            background: #f0f4ff;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #555;
+            min-height: 40px;
+        }
+
+        .ai-thinking {
+            display: none;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            color: #856404;
+            animation: pulse 1.5s infinite;
+        }
+
+        .ai-thinking.active {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        @media (max-width: 768px) {
+            .game-content {
+                flex-direction: column;
+            }
+            
+            .game-board {
+                grid-template-columns: repeat(9, 40px);
+                grid-template-rows: repeat(9, 40px);
+            }
+            
+            .cell {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .stone {
+                width: 32px;
+                height: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <a href="index.html" style="position: absolute; left: 30px; top: 30px; background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 10px; color: white; text-decoration: none; font-weight: bold; transition: all 0.3s; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                🏠 홈으로
+            </a>
+            <h1>🏰 그레이트 킹덤 🏰</h1>
+            <p class="subtitle">이세돌 9단이 만든 전략 보드게임</p>
+        </div>
+
+        <div class="game-content">
+            <div class="game-board-container">
+                <div id="gameBoard" class="game-board"></div>
+            </div>
+
+            <div class="game-info">
+                <div class="info-panel">
+                    <div id="currentTurn" class="current-turn blue-turn">
+                        파란색 차례
+                    </div>
+
+                    <!-- 연결 끊김 경고 -->
+                    <div id="connectionWarning" class="warning-banner">
+                        <div id="warningMessage">
+                            ⚠️ 시간 초과! 컴퓨터가 대신 플레이 중입니다.
+                        </div>
+                        <button class="reconnect-btn" onclick="game.resumeManualPlay()">참여하기</button>
+                    </div>
+
+                    <!-- 턴 타이머 -->
+                    <div id="turnTimer" class="turn-timer" style="display: none;">
+                        <div class="timer-label">⏱️ 남은 시간</div>
+                        <div id="timerDisplay" class="timer-display">10</div>
+                        <div class="timer-progress">
+                            <div id="timerProgressBar" class="timer-progress-bar" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="player-info">
+                        <span class="player-name blue">🔵 파란색 (선공)</span>
+                        <span id="blueStones">40개 남음</span>
+                    </div>
+
+                    <div class="player-info">
+                        <span class="player-name orange">🟠 주황색 (후공)</span>
+                        <span id="orangeStones">40개 남음</span>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <h3>게임 조작</h3>
+                    <div class="controls">
+                        <button class="btn btn-pass" onclick="game.pass()">
+                            ⏭️ 패스
+                        </button>
+                        <button class="btn btn-restart" onclick="game.restart()">
+                            🔄 새 게임
+                        </button>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <h3>게임 모드</h3>
+                    <div class="controls">
+                        <button class="btn btn-mode" id="onlineMatchBtn" onclick="game.startOnlineMatch()">
+                            🌐 온라인 대전
+                        </button>
+                        <button class="btn btn-mode" onclick="game.setMode('pvp')">
+                            👥 로컬 2인
+                        </button>
+                        <button class="btn btn-mode" onclick="game.setMode('ai')">
+                            🤖 컴퓨터 대전
+                        </button>
+                    </div>
+                    <div id="onlineStatus" style="display: none; margin-top: 10px; padding: 10px; background: #e8f5e9; border-radius: 5px; font-size: 0.9em; color: #2e7d32;">
+                        <span id="onlineRoomInfo"></span>
+                    </div>
+                </div>
+
+                <div class="info-panel" id="aiDifficultyPanel" style="display: none;">
+                    <h3>🤖 AI 난이도</h3>
+                    <div class="controls">
+                        <button class="btn btn-difficulty btn-easy" onclick="game.setDifficulty('easy')">
+                            😊 쉬움
+                        </button>
+                        <button class="btn btn-difficulty btn-medium" onclick="game.setDifficulty('medium')">
+                            🤔 보통
+                        </button>
+                        <button class="btn btn-difficulty btn-hard" onclick="game.setDifficulty('hard')">
+                            😈 어려움
+                        </button>
+                    </div>
+                    <div id="difficultyInfo" style="margin-top: 10px; font-size: 0.9em; color: #666; line-height: 1.6;">
+                        난이도를 선택하세요
+                    </div>
+                </div>
+
+                <div class="info-panel" id="aiLevelPanel" style="display: none;">
+                    <h3>🎯 AI 급수 선택</h3>
+                    <div class="ai-level-selector">
+                        <select id="aiLevel" class="level-select" onchange="game.setAILevel(this.value)">
+                            <option value="9k">9급 - 입문자 (초보)</option>
+                            <option value="8k">8급 - 초급자</option>
+                            <option value="7k">7급 - 기초 학습</option>
+                            <option value="6k">6급 - 기본 전략</option>
+                            <option value="5k" selected>5급 - 중급 (기본)</option>
+                            <option value="4k">4급 - 능숙함</option>
+                            <option value="3k">3급 - 고급 전략</option>
+                            <option value="2k">2급 - 전문가</option>
+                            <option value="1k">1급 - 최상급</option>
+                            <option value="1d">초단 - 프로 입문</option>
+                            <option value="2d">2단 - 강력함</option>
+                            <option value="3d">3단 - 매우 강함</option>
+                            <option value="4d">4단 - 고수</option>
+                            <option value="5d">5단 - 명인</option>
+                            <option value="6d">6단 - 달인</option>
+                            <option value="7d">7단 - 대가</option>
+                            <option value="8d">8단 - 국수</option>
+                            <option value="9d">9단 - 최강 (이세돌급)</option>
+                        </select>
+                        <div class="level-description" id="levelDescription">
+                            5급: 기본적인 전략을 사용합니다.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <h3>📜 게임 규칙</h3>
+                    <div class="rules-section">
+                        <ul>
+                            <li>번갈아가며 말을 배치합니다</li>
+                            <li>상대 말을 <strong>둘러싸면 잡습니다</strong></li>
+                            <li>상대 말을 <strong>1개라도 잡으면 즉시 승리!</strong></li>
+                            <li>둘 다 패스하면 영토 계산</li>
+                            <li>선공은 3개 더 많아야 승리</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <h3>게임 로그</h3>
+                    <div id="gameLog" class="game-log">
+                        <div class="log-entry">게임 시작! 파란색부터 시작합니다.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 승리 모달 -->
+    <div id="winnerModal" class="modal">
+        <div id="modalContent" class="modal-content">
+            <div class="winner-icon" id="winnerIcon">🎉</div>
+            <h2 id="winnerText">승리!</h2>
+            <p id="winnerDetail"></p>
+            <div id="modalButtons" style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="btn btn-restart" onclick="game.closeModal()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 방 선택 모달 -->
+    <div id="roomModal" class="modal">
+        <div class="modal-content large">
+            <h2>🎮 온라인 대전 - 방 선택</h2>
+            <p>입장할 방을 선택하세요</p>
+
+            <div id="roomSelection" class="room-selection">
+                <!-- 9개 방이 동적으로 생성됩니다 -->
+            </div>
+
+            <button class="btn btn-cancel-waiting" onclick="game.closeRoomModal()" style="margin-top: 20px;">
+                닫기
+            </button>
+        </div>
+    </div>
+
+    <!-- 카운트다운 오버레이 -->
+    <div id="countdownOverlay" class="countdown-overlay">
+        <div class="countdown-number" id="countdownNumber">3</div>
+    </div>
+
+    <!-- 폭죽 컨테이너 -->
+    <div id="confettiContainer" class="confetti-container"></div>
+
+    <!-- 온라인 방 시스템 스크립트 -->
+    <script src="js/online-room-system.js"></script>
+
+    <script>
+        // Supabase 연결 정보
+        const SUPABASE_URL = 'https://hoszcmgjmjjximzxdfuk.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhvc3pjbWdqbWpqeGltenhkZnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2NjIxODcsImV4cCI6MjA3NjIzODE4N30.QUE9wCCbrnRHGKbAapPTC_PPxnbRKmwXuJqh16pyZO0';
+
+        // 게임 클래스: 모든 게임 로직을 담당하는 "두뇌"
+        class GreatKingdomGame {
+            constructor() {
+                // 게임 상태 초기화 (State: 게임의 현재 상태를 저장)
+                this.board = Array(9).fill(null).map(() => Array(9).fill(null));
+                this.currentPlayer = 'blue'; // 'blue' 또는 'orange'
+                this.blueStones = 40;
+                this.orangeStones = 40;
+                this.consecutivePasses = 0;
+                this.gameMode = 'pvp'; // 'pvp' 또는 'ai'
+                this.aiDifficulty = 'medium'; // 'easy', 'medium', 'hard'
+                this.gameOver = false;
+                this.moveHistory = [];
+
+                // 온라인 매칭 시스템
+                this.onlineMatch = null;
+                this.isOnlineMode = false;
+                this.myOnlineColor = null;
+                this.opponentName = '';
+
+                // 턴 타이머 (10초 제한)
+                this.turnTimeLimit = 10; // 10초
+                this.currentTurnTime = this.turnTimeLimit;
+                this.timerInterval = null;
+                this.timerEnabled = false; // 기본값은 비활성화, 온라인 모드에서만 활성화
+
+                // 중립 성 배치 (가운데)
+                this.board[4][4] = 'neutral';
+
+                this.init();
+            }
+
+            // 게임 초기화
+            init() {
+                this.renderBoard();
+                this.updateUI();
+                this.addLog('게임 시작! 파란색부터 시작합니다.');
+            }
+
+            // 보드 렌더링 (화면에 그리기)
+            renderBoard() {
+                const boardElement = document.getElementById('gameBoard');
+                boardElement.innerHTML = '';
+
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+
+                        // 중앙 셀 표시
+                        if (row === 4 && col === 4) {
+                            cell.classList.add('center');
+                        }
+
+                        // 말이 있으면 표시
+                        const stone = this.board[row][col];
+                        if (stone) {
+                            cell.classList.add('occupied');
+                            const stoneElement = document.createElement('div');
+                            stoneElement.className = `stone ${stone}`;
+                            if (stone === 'neutral') {
+                                stoneElement.textContent = '⭐';
+                            }
+                            cell.appendChild(stoneElement);
+                        }
+
+                        // 클릭 이벤트
+                        cell.addEventListener('click', () => this.handleCellClick(row, col));
+                        
+                        boardElement.appendChild(cell);
+                    }
+                }
+            }
+
+            // 셀 클릭 처리
+            handleCellClick(row, col) {
+                if (this.gameOver) {
+                    alert('게임이 종료되었습니다. 새 게임을 시작하세요.');
+                    return;
+                }
+
+                // 온라인 모드: 내 차례가 아니면 클릭 불가
+                if (this.isOnlineMode && this.currentPlayer !== this.myOnlineColor) {
+                    alert('상대방의 차례입니다.');
+                    return;
+                }
+
+                // AI 모드에서 AI 차례일 때는 클릭 불가
+                if (this.gameMode === 'ai' && this.currentPlayer === 'orange') {
+                    return;
+                }
+
+                // 이미 말이 있는 곳은 클릭 불가
+                if (this.board[row][col] !== null) {
+                    alert('이미 말이 있는 위치입니다.');
+                    return;
+                }
+
+                // 상대방 영토인지 확인
+                if (this.isInOpponentTerritory(row, col)) {
+                    alert('상대방 영토에는 말을 놓을 수 없습니다.');
+                    return;
+                }
+
+                // 말 배치
+                this.placeStone(row, col, true); // 세 번째 파라미터: 온라인 전송 여부
+            }
+
+            // 말 배치
+            async placeStone(row, col, sendOnline = false) {
+                this.board[row][col] = this.currentPlayer;
+                this.consecutivePasses = 0;
+
+                // 남은 말 수 감소
+                if (this.currentPlayer === 'blue') {
+                    this.blueStones--;
+                } else {
+                    this.orangeStones--;
+                }
+
+                this.addLog(`${this.currentPlayer === 'blue' ? '🔵 파란색' : '🟠 주황색'}이 (${row + 1}, ${col + 1})에 말을 놓았습니다.`);
+
+                // 온라인 모드: 이동 전송
+                if (this.isOnlineMode && sendOnline && this.roomSystem) {
+                    try {
+                        await this.roomSystem.sendMove('place', row, col, {
+                            board: this.board,
+                            blueStones: this.blueStones,
+                            orangeStones: this.orangeStones
+                        });
+                    } catch (error) {
+                        console.error('온라인 이동 전송 실패:', error);
+                    }
+                }
+
+                // 상대 말을 잡았는지 확인
+                const capturedStones = this.checkCapture(row, col);
+                if (capturedStones.length > 0) {
+                    this.handleCapture(capturedStones);
+                    return;
+                }
+
+                // 다음 턴
+                this.switchPlayer();
+                this.renderBoard();
+                this.updateUI();
+
+                // AI 모드에서 AI 차례면 AI 실행
+                if (this.gameMode === 'ai' && this.currentPlayer === 'orange' && !this.gameOver) {
+                    setTimeout(() => this.aiMove(), 500);
+                }
+            }
+
+            // 상대방 영토인지 확인
+            isInOpponentTerritory(row, col) {
+                const opponent = this.currentPlayer === 'blue' ? 'orange' : 'blue';
+                // 간단한 구현: 주변이 모두 상대 말이거나 가장자리면 영토로 간주
+                // 실제로는 더 복잡한 알고리즘 필요
+                return false; // 일단 간단하게 구현
+            }
+
+            // 포획 확인 (상대 말을 둘러쌌는지)
+            checkCapture(row, col) {
+                const opponent = this.currentPlayer === 'blue' ? 'orange' : 'blue';
+                const captured = [];
+
+                // 상하좌우 확인
+                const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                
+                for (const [dr, dc] of directions) {
+                    const newRow = row + dr;
+                    const newCol = col + dc;
+                    
+                    if (this.isValidCell(newRow, newCol) && this.board[newRow][newCol] === opponent) {
+                        // 이 상대 말이 둘러싸였는지 확인
+                        if (this.isSurrounded(newRow, newCol, opponent)) {
+                            captured.push([newRow, newCol]);
+                        }
+                    }
+                }
+
+                return captured;
+            }
+
+            // 말이 둘러싸였는지 확인 (BFS 알고리즘 사용)
+            isSurrounded(row, col, color) {
+                const visited = Array(9).fill(null).map(() => Array(9).fill(false));
+                const queue = [[row, col]];
+                visited[row][col] = true;
+                const group = [[row, col]];
+
+                // BFS로 연결된 같은 색 그룹 찾기
+                while (queue.length > 0) {
+                    const [r, c] = queue.shift();
+                    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+                    for (const [dr, dc] of directions) {
+                        const newRow = r + dr;
+                        const newCol = c + dc;
+
+                        if (!this.isValidCell(newRow, newCol)) continue;
+                        if (visited[newRow][newCol]) continue;
+
+                        visited[newRow][newCol] = true;
+
+                        // 빈 칸이 있으면 둘러싸이지 않음
+                        if (this.board[newRow][newCol] === null || this.board[newRow][newCol] === 'neutral') {
+                            return false;
+                        }
+
+                        // 같은 색이면 그룹에 추가
+                        if (this.board[newRow][newCol] === color) {
+                            queue.push([newRow, newCol]);
+                            group.push([newRow, newCol]);
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            // 유효한 셀인지 확인
+            isValidCell(row, col) {
+                return row >= 0 && row < 9 && col >= 0 && col < 9;
+            }
+
+            // 포획 처리
+            handleCapture(capturedStones) {
+                this.addLog(`🎯 ${this.currentPlayer === 'blue' ? '🔵 파란색' : '🟠 주황색'}이 상대 말 ${capturedStones.length}개를 잡았습니다!`);
+                
+                // 말 제거
+                for (const [row, col] of capturedStones) {
+                    this.board[row][col] = null;
+                }
+
+                // 상대 말을 하나라도 잡으면 즉시 승리!
+                this.endGame(`${this.currentPlayer === 'blue' ? '🔵 파란색' : '🟠 주황색'} 승리!`, 
+                            `상대 말을 ${capturedStones.length}개 잡아서 승리했습니다!`);
+            }
+
+            // 패스
+            pass() {
+                if (this.gameOver) return;
+
+                this.consecutivePasses++;
+                this.addLog(`${this.currentPlayer === 'blue' ? '🔵 파란색' : '🟠 주황색'}이 패스했습니다.`);
+
+                // 연속 2번 패스하면 게임 종료
+                if (this.consecutivePasses >= 2) {
+                    this.calculateTerritory();
+                    return;
+                }
+
+                this.switchPlayer();
+                this.updateUI();
+
+                // AI 모드에서 AI 차례면 AI 실행
+                if (this.gameMode === 'ai' && this.currentPlayer === 'orange' && !this.gameOver) {
+                    setTimeout(() => this.aiMove(), 500);
+                }
+            }
+
+            // 영토 계산
+            calculateTerritory() {
+                let blueTerritory = 0;
+                let orangeTerritory = 0;
+
+                // 간단한 영토 계산: 각 플레이어의 말 개수와 빈 칸 주변 확인
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (this.board[row][col] === 'blue') {
+                            blueTerritory++;
+                        } else if (this.board[row][col] === 'orange') {
+                            orangeTerritory++;
+                        } else if (this.board[row][col] === null) {
+                            // 빈 칸의 영토 판정 (주변 말 확인)
+                            const owner = this.getTerritoryOwner(row, col);
+                            if (owner === 'blue') blueTerritory++;
+                            else if (owner === 'orange') orangeTerritory++;
+                        }
+                    }
+                }
+
+                // 승자 결정 (선공은 3개 더 많아야 승리)
+                const diff = blueTerritory - orangeTerritory;
+                let winner, detail;
+                
+                if (diff >= 3) {
+                    winner = '🔵 파란색 승리!';
+                    detail = `영토: 파란색 ${blueTerritory} vs 주황색 ${orangeTerritory} (차이: +${diff})`;
+                } else {
+                    winner = '🟠 주황색 승리!';
+                    detail = `영토: 파란색 ${blueTerritory} vs 주황색 ${orangeTerritory} (선공 불리 보정)`;
+                }
+
+                this.endGame(winner, detail);
+            }
+
+            // 빈 칸의 영토 소유자 판정
+            getTerritoryOwner(row, col) {
+                const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                let blueCount = 0;
+                let orangeCount = 0;
+
+                for (const [dr, dc] of directions) {
+                    const newRow = row + dr;
+                    const newCol = col + dc;
+
+                    if (this.isValidCell(newRow, newCol)) {
+                        if (this.board[newRow][newCol] === 'blue') blueCount++;
+                        else if (this.board[newRow][newCol] === 'orange') orangeCount++;
+                    } else {
+                        // 가장자리도 고려
+                    }
+                }
+
+                if (blueCount > orangeCount) return 'blue';
+                if (orangeCount > blueCount) return 'orange';
+                return null;
+            }
+
+            // 플레이어 전환
+            switchPlayer() {
+                this.currentPlayer = this.currentPlayer === 'blue' ? 'orange' : 'blue';
+
+                // 타이머 재시작
+                if (this.timerEnabled && !this.gameOver) {
+                    this.startTimer();
+                }
+            }
+
+            // AI 이동
+            aiMove() {
+                // AI 사고 중 표시
+                const validMoves = this.getValidMoves();
+                
+                if (validMoves.length === 0) {
+                    this.pass();
+                    return;
+                }
+
+                let selectedMove;
+                
+                // 급수에 따라 다른 전략 사용
+                switch(this.aiLevel) {
+                    case '9k': // 완전 랜덤
+                        selectedMove = this.aiLevel9k(validMoves);
+                        break;
+                    case '8k': // 중앙 선호
+                        selectedMove = this.aiLevel8k(validMoves);
+                        break;
+                    case '7k': // 기본 방어
+                        selectedMove = this.aiLevel7k(validMoves);
+                        break;
+                    case '6k': // 공격+방어
+                        selectedMove = this.aiLevel6k(validMoves);
+                        break;
+                    case '5k': // 영토 확장
+                        selectedMove = this.aiLevel5k(validMoves);
+                        break;
+                    case '4k': // 포위 전략
+                        selectedMove = this.aiLevel4k(validMoves);
+                        break;
+                    case '3k': // 2수 읽기
+                        selectedMove = this.aiLevelKyu(validMoves, 2);
+                        break;
+                    case '2k': // 3수 읽기
+                        selectedMove = this.aiLevelKyu(validMoves, 3);
+                        break;
+                    case '1k': // 4수 읽기
+                        selectedMove = this.aiLevelKyu(validMoves, 4);
+                        break;
+                    case '1d': // 5수 읽기
+                        selectedMove = this.aiLevelDan(validMoves, 5);
+                        break;
+                    case '2d': // 6수 읽기
+                        selectedMove = this.aiLevelDan(validMoves, 6);
+                        break;
+                    case '3d': // 7수 읽기
+                        selectedMove = this.aiLevelDan(validMoves, 7);
+                        break;
+                    case '4d': // 8수 읽기
+                        selectedMove = this.aiLevelDan(validMoves, 8);
+                        break;
+                    case '5d': // 9수 읽기
+                        selectedMove = this.aiLevelDan(validMoves, 9);
+                        break;
+                    case '6d': // 10수 읽기
+                        selectedMove = this.aiLevelDan(validMoves, 10);
+                        break;
+                    case '7d': // 11수 읽기
+                        selectedMove = this.aiLevelDan(validMoves, 11);
+                        break;
+                    case '8d': // 12수 읽기
+                        selectedMove = this.aiLevelDan(validMoves, 12);
+                        break;
+                    case '9d': // 최강 (14수 읽기)
+                        selectedMove = this.aiLevelDan(validMoves, 14);
+                        break;
+                    default:
+                        selectedMove = this.aiLevel5k(validMoves);
+                }
+                
+                if (selectedMove) {
+                    this.placeStone(selectedMove[0], selectedMove[1]);
+                } else {
+                    this.pass();
+                }
+            }
+
+            // 유효한 수 가져오기
+            getValidMoves() {
+                const moves = [];
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (this.board[row][col] === null && !this.isInOpponentTerritory(row, col)) {
+                            moves.push([row, col]);
+                        }
+                    }
+                }
+                return moves;
+            }
+
+            // 9급 AI: 완전 랜덤
+            aiLevel9k(validMoves) {
+                return validMoves[Math.floor(Math.random() * validMoves.length)];
+            }
+
+            // 8급 AI: 중앙 선호
+            aiLevel8k(validMoves) {
+                validMoves.sort((a, b) => {
+                    const distA = Math.abs(a[0] - 4) + Math.abs(a[1] - 4);
+                    const distB = Math.abs(b[0] - 4) + Math.abs(b[1] - 4);
+                    return distA - distB;
+                });
+                
+                const topMoves = validMoves.slice(0, Math.max(1, Math.floor(validMoves.length * 0.4)));
+                return topMoves[Math.floor(Math.random() * topMoves.length)];
+            }
+
+            // 7급 AI: 기본 방어
+            aiLevel7k(validMoves) {
+                // 내 말 근처에 두기
+                const myStones = [];
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (this.board[row][col] === 'orange') {
+                            myStones.push([row, col]);
+                        }
+                    }
+                }
+
+                if (myStones.length > 0) {
+                    validMoves.sort((a, b) => {
+                        const minDistA = Math.min(...myStones.map(s => 
+                            Math.abs(a[0] - s[0]) + Math.abs(a[1] - s[1])
+                        ));
+                        const minDistB = Math.min(...myStones.map(s => 
+                            Math.abs(b[0] - s[0]) + Math.abs(b[1] - s[1])
+                        ));
+                        return minDistA - minDistB;
+                    });
+                }
+
+                const topMoves = validMoves.slice(0, Math.max(1, Math.floor(validMoves.length * 0.3)));
+                return topMoves[Math.floor(Math.random() * topMoves.length)];
+            }
+
+            // 6급 AI: 공격+방어
+            aiLevel6k(validMoves) {
+                // 상대 말 근처 또는 내 말 근처
+                const scored = validMoves.map(move => {
+                    let score = 0;
+                    const [row, col] = move;
+                    
+                    // 주변 확인
+                    const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                    for (const [dr, dc] of directions) {
+                        const nr = row + dr;
+                        const nc = col + dc;
+                        if (this.isValidCell(nr, nc)) {
+                            if (this.board[nr][nc] === 'blue') score += 2; // 상대 근처
+                            if (this.board[nr][nc] === 'orange') score += 1; // 내 말 근처
+                        }
+                    }
+                    
+                    // 중앙 선호
+                    const centerDist = Math.abs(row - 4) + Math.abs(col - 4);
+                    score += (8 - centerDist) * 0.5;
+                    
+                    return { move, score };
+                });
+
+                scored.sort((a, b) => b.score - a.score);
+                const topMoves = scored.slice(0, Math.max(1, Math.floor(scored.length * 0.25)));
+                const selected = topMoves[Math.floor(Math.random() * topMoves.length)];
+                return selected.move;
+            }
+
+            // 5급 AI: 영토 확장
+            aiLevel5k(validMoves) {
+                const scored = validMoves.map(move => {
+                    let score = 0;
+                    const [row, col] = move;
+                    
+                    // 영토 확장 가능성 평가
+                    const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                    let emptyNeighbors = 0;
+                    let myNeighbors = 0;
+                    let enemyNeighbors = 0;
+                    
+                    for (const [dr, dc] of directions) {
+                        const nr = row + dr;
+                        const nc = col + dc;
+                        if (this.isValidCell(nr, nc)) {
+                            if (this.board[nr][nc] === null) emptyNeighbors++;
+                            else if (this.board[nr][nc] === 'orange') myNeighbors++;
+                            else if (this.board[nr][nc] === 'blue') enemyNeighbors++;
+                        }
+                    }
+                    
+                    score += emptyNeighbors * 2; // 빈 공간 선호
+                    score += myNeighbors * 1.5; // 내 말 연결
+                    score += enemyNeighbors * 2.5; // 상대 견제
+                    
+                    // 중앙 선호
+                    const centerDist = Math.abs(row - 4) + Math.abs(col - 4);
+                    score += (8 - centerDist) * 0.8;
+                    
+                    return { move, score };
+                });
+
+                scored.sort((a, b) => b.score - a.score);
+                const topMoves = scored.slice(0, Math.max(1, Math.floor(scored.length * 0.2)));
+                const selected = topMoves[Math.floor(Math.random() * topMoves.length)];
+                return selected.move;
+            }
+
+            // 4급 AI: 포위 전략
+            aiLevel4k(validMoves) {
+                // 상대를 포위할 수 있는지 확인
+                for (const move of validMoves) {
+                    const [row, col] = move;
+                    // 시뮬레이션: 이 수를 두면 상대를 잡을 수 있는가?
+                    this.board[row][col] = 'orange';
+                    const captured = this.checkCapture(row, col);
+                    this.board[row][col] = null;
+                    
+                    if (captured.length > 0) {
+                        return move; // 즉시 잡을 수 있으면 그 수를 둔다
+                    }
+                }
+                
+                // 잡을 수 없으면 5급 전략 사용
+                return this.aiLevel5k(validMoves);
+            }
+
+            // 급 AI: 미니맥스 (간소화)
+            aiLevelKyu(validMoves, depth) {
+                const scored = validMoves.map(move => {
+                    const score = this.evaluateMove(move, depth, 'orange');
+                    return { move, score };
+                });
+
+                scored.sort((a, b) => b.score - a.score);
+                const topMoves = scored.slice(0, Math.max(1, Math.floor(scored.length * 0.15)));
+                const selected = topMoves[Math.floor(Math.random() * topMoves.length)];
+                return selected.move;
+            }
+
+            // 단 AI: 강화된 미니맥스
+            aiLevelDan(validMoves, depth) {
+                const scored = validMoves.map(move => {
+                    const score = this.evaluateMoveDan(move, depth, 'orange');
+                    return { move, score };
+                });
+
+                scored.sort((a, b) => b.score - a.score);
+                
+                // 높은 단수일수록 최선의 수만 선택
+                const selectRatio = Math.max(0.05, 0.2 - (depth - 5) * 0.02);
+                const topMoves = scored.slice(0, Math.max(1, Math.floor(scored.length * selectRatio)));
+                const selected = topMoves[Math.floor(Math.random() * topMoves.length)];
+                return selected.move;
+            }
+
+            // 수 평가 (급 수준)
+            evaluateMove(move, depth, player) {
+                if (depth === 0) {
+                    return this.evaluatePosition(player);
+                }
+
+                const [row, col] = move;
+                this.board[row][col] = player;
+                
+                // 즉시 승리 확인
+                const captured = this.checkCapture(row, col);
+                if (captured.length > 0) {
+                    this.board[row][col] = null;
+                    return 10000; // 매우 높은 점수
+                }
+
+                const score = this.evaluatePosition(player);
+                this.board[row][col] = null;
+                
+                return score;
+            }
+
+            // 수 평가 (단 수준)
+            evaluateMoveDan(move, depth, player) {
+                if (depth === 0) {
+                    return this.evaluatePositionAdvanced(player);
+                }
+
+                const [row, col] = move;
+                this.board[row][col] = player;
+                
+                // 즉시 승리 확인
+                const captured = this.checkCapture(row, col);
+                if (captured.length > 0) {
+                    this.board[row][col] = null;
+                    return 100000; // 매우 높은 점수
+                }
+
+                let score = this.evaluatePositionAdvanced(player);
+                
+                // 상대의 최선 응수 고려 (간소화된 미니맥스)
+                const opponent = player === 'orange' ? 'blue' : 'orange';
+                const opponentMoves = this.getValidMoves();
+                
+                if (opponentMoves.length > 0 && depth > 1) {
+                    const opponentScores = opponentMoves.slice(0, Math.min(5, opponentMoves.length)).map(oppMove => {
+                        return this.evaluateMoveDan(oppMove, depth - 1, opponent);
+                    });
+                    const bestOpponentScore = Math.max(...opponentScores);
+                    score -= bestOpponentScore * 0.5; // 상대의 좋은 수는 감점
+                }
+
+                this.board[row][col] = null;
+                return score;
+            }
+
+            // 포지션 평가 (기본)
+            evaluatePosition(player) {
+                let score = 0;
+                const opponent = player === 'orange' ? 'blue' : 'orange';
+                
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (this.board[row][col] === player) {
+                            score += 10;
+                            
+                            // 연결성 평가
+                            const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                            for (const [dr, dc] of directions) {
+                                const nr = row + dr;
+                                const nc = col + dc;
+                                if (this.isValidCell(nr, nc)) {
+                                    if (this.board[nr][nc] === player) score += 5;
+                                    if (this.board[nr][nc] === null) score += 2;
+                                }
+                            }
+                            
+                            // 중앙 위치 가산점
+                            const centerDist = Math.abs(row - 4) + Math.abs(col - 4);
+                            score += (8 - centerDist);
+                        } else if (this.board[row][col] === opponent) {
+                            score -= 10;
+                        }
+                    }
+                }
+                
+                return score;
+            }
+
+            // 포지션 평가 (고급)
+            evaluatePositionAdvanced(player) {
+                let score = this.evaluatePosition(player);
+                const opponent = player === 'orange' ? 'blue' : 'orange';
+                
+                // 영향력 평가
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (this.board[row][col] === null) {
+                            let playerInfluence = 0;
+                            let opponentInfluence = 0;
+                            
+                            // 주변 2칸까지 영향력 계산
+                            for (let dr = -2; dr <= 2; dr++) {
+                                for (let dc = -2; dc <= 2; dc++) {
+                                    const nr = row + dr;
+                                    const nc = col + dc;
+                                    if (this.isValidCell(nr, nc)) {
+                                        const dist = Math.abs(dr) + Math.abs(dc);
+                                        const influence = 3 - dist;
+                                        
+                                        if (this.board[nr][nc] === player) {
+                                            playerInfluence += influence;
+                                        } else if (this.board[nr][nc] === opponent) {
+                                            opponentInfluence += influence;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if (playerInfluence > opponentInfluence) {
+                                score += (playerInfluence - opponentInfluence);
+                            }
+                        }
+                    }
+                }
+                
+                return score;
+            }
+
+            // 게임 모드 설정
+            setMode(mode) {
+                this.gameMode = mode;
+                const aiPanel = document.getElementById('aiLevelPanel');
+                
+                if (mode === 'ai') {
+                    aiPanel.style.display = 'block';
+                    this.addLog(`🤖 컴퓨터 대전 모드 (${this.getAILevelName()})`);
+                } else {
+                    aiPanel.style.display = 'none';
+                    this.addLog('👥 대인 경기 모드');
+                }
+                
+                this.restart();
+            }
+
+            // AI 레벨 설정
+            setAILevel(level) {
+                this.aiLevel = level;
+                const description = this.getAILevelDescription(level);
+                document.getElementById('levelDescription').textContent = description;
+                this.addLog(`AI 급수 변경: ${this.getAILevelName()}`);
+                
+                if (this.gameMode === 'ai' && !this.gameOver) {
+                    this.restart();
+                }
+            }
+
+            // AI 레벨 이름 가져오기
+            getAILevelName() {
+                const levels = {
+                    '9k': '9급 (입문자)',
+                    '8k': '8급 (초급자)',
+                    '7k': '7급 (기초)',
+                    '6k': '6급 (기본)',
+                    '5k': '5급 (중급)',
+                    '4k': '4급 (능숙)',
+                    '3k': '3급 (고급)',
+                    '2k': '2급 (전문가)',
+                    '1k': '1급 (최상급)',
+                    '1d': '초단',
+                    '2d': '2단',
+                    '3d': '3단',
+                    '4d': '4단',
+                    '5d': '5단',
+                    '6d': '6단',
+                    '7d': '7단',
+                    '8d': '8단',
+                    '9d': '9단 (최강)'
+                };
+                return levels[this.aiLevel] || '5급';
+            }
+
+            // AI 레벨 설명
+            getAILevelDescription(level) {
+                const descriptions = {
+                    '9k': '9급: 완전 랜덤으로 둡니다. 초보자도 쉽게 이길 수 있습니다.',
+                    '8k': '8급: 중앙을 선호하지만 전략이 없습니다.',
+                    '7k': '7급: 기본적인 방어만 합니다.',
+                    '6k': '6급: 공격과 방어를 조금 생각합니다.',
+                    '5k': '5급: 영토 확장을 시도합니다. (기본)',
+                    '4k': '4급: 상대 말 포위를 노립니다.',
+                    '3k': '3급: 2수 앞을 내다봅니다.',
+                    '2k': '2급: 3수 앞을 내다보며 전략적입니다.',
+                    '1k': '1급: 4수 앞을 내다보는 고수입니다.',
+                    '1d': '초단: 강력한 전략과 5수 읽기',
+                    '2d': '2단: 매우 강한 수읽기 능력',
+                    '3d': '3단: 거의 완벽한 방어',
+                    '4d': '4단: 공격과 방어의 균형',
+                    '5d': '5단: 복잡한 형세 판단',
+                    '6d': '6단: 고도의 전략 수립',
+                    '7d': '7단: 프로 수준의 실력',
+                    '8d': '8단: 거의 완벽한 수준',
+                    '9d': '9단: 최강의 AI. 이기기 매우 어렵습니다!'
+                };
+                return descriptions[level] || descriptions['5k'];
+            }
+
+            // 게임 종료
+            async endGame(winner, detail) {
+                this.gameOver = true;
+                this.addLog(`🏆 게임 종료! ${winner}`);
+
+                // 타이머 정지
+                this.stopTimer();
+
+                // 온라인 모드: 게임 종료 전송
+                if (this.isOnlineMode && this.roomSystem) {
+                    await this.roomSystem.endGame(winner);
+                }
+
+                // 화려한 승리 세레모니
+                this.showVictoryCeremony(winner, detail);
+
+                document.getElementById('winnerText').innerHTML = `<span class="victory-text">${winner}</span>`;
+                document.getElementById('winnerDetail').textContent = detail;
+
+                // 온라인 모드에서 버튼 변경
+                const modalButtons = document.getElementById('modalButtons');
+                if (this.isOnlineMode && this.roomSystem) {
+                    // 승자인지 패자인지 확인
+                    const isWinner = winner.includes(this.myOnlineColor === 'blue' ? '파란색' : '주황색');
+
+                    if (isWinner) {
+                        // 이긴 사람: "새로운 게임 요청이 왔습니다. 수락/나가기"
+                        modalButtons.innerHTML = `
+                            <p style="width: 100%; text-align: center; font-size: 1.1em; margin-bottom: 15px;">
+                                새로운 게임을 기다리는 중...
+                            </p>
+                            <button class="btn btn-cancel-waiting" onclick="game.leaveRoomAndCloseModal()">나가기</button>
+                        `;
+                    } else {
+                        // 진 사람: "새로운 게임을 요청하시겠습니까? 수락/나가기"
+                        modalButtons.innerHTML = `
+                            <p style="width: 100%; text-align: center; font-size: 1.1em; margin-bottom: 15px;">
+                                새로운 게임을 요청하시겠습니까?
+                            </p>
+                            <button class="btn btn-mode" onclick="game.requestRematch()">수락</button>
+                            <button class="btn btn-cancel-waiting" onclick="game.leaveRoomAndCloseModal()">나가기</button>
+                        `;
+                    }
+                } else {
+                    // 로컬 모드: 확인 버튼만
+                    modalButtons.innerHTML = `
+                        <button class="btn btn-restart" onclick="game.closeModal()">확인</button>
+                    `;
+                }
+
+                document.getElementById('winnerModal').classList.add('active');
+
+                // 온라인 모드에서 재경기 요청 감지 시작
+                if (this.isOnlineMode && this.roomSystem) {
+                    this.startRematchPolling();
+                }
+            }
+
+            // 화려한 승리 세레모니
+            showVictoryCeremony(winner, detail) {
+                const modalContent = document.getElementById('modalContent');
+                modalContent.classList.add('victory');
+
+                // 승자 아이콘 변경
+                const winnerIcon = document.getElementById('winnerIcon');
+                winnerIcon.textContent = '🏆';
+
+                // 폭죽 효과
+                this.createConfetti();
+
+                // 불꽃놀이 효과
+                this.createFireworks();
+
+                // 3초 후 효과 정리
+                setTimeout(() => {
+                    document.getElementById('confettiContainer').innerHTML = '';
+                }, 5000);
+            }
+
+            // 폭죽 생성
+            createConfetti() {
+                const container = document.getElementById('confettiContainer');
+                const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
+
+                for (let i = 0; i < 150; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 3 + 's';
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+
+                    container.appendChild(confetti);
+
+                    // 3초 후 제거
+                    setTimeout(() => confetti.remove(), 5000);
+                }
+            }
+
+            // 불꽃놀이 효과
+            createFireworks() {
+                const container = document.getElementById('confettiContainer');
+                const colors = ['#FFD700', '#FF1493', '#00CED1', '#FF4500', '#9370DB'];
+
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        const x = Math.random() * window.innerWidth;
+                        const y = Math.random() * window.innerHeight * 0.5;
+
+                        for (let j = 0; j < 30; j++) {
+                            const firework = document.createElement('div');
+                            firework.className = 'firework';
+                            firework.style.left = x + 'px';
+                            firework.style.top = y + 'px';
+                            firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+                            const angle = (j / 30) * 2 * Math.PI;
+                            const velocity = 50 + Math.random() * 50;
+                            const tx = Math.cos(angle) * velocity;
+                            const ty = Math.sin(angle) * velocity;
+
+                            firework.style.setProperty('--tx', tx + 'px');
+                            firework.style.setProperty('--ty', ty + 'px');
+
+                            container.appendChild(firework);
+
+                            setTimeout(() => firework.remove(), 1000);
+                        }
+                    }, i * 600);
+                }
+            }
+
+            // 모달 닫기
+            closeModal() {
+                const modalContent = document.getElementById('modalContent');
+                modalContent.classList.remove('victory');
+                document.getElementById('winnerModal').classList.remove('active');
+                document.getElementById('confettiContainer').innerHTML = '';
+            }
+
+            // ===== 턴 타이머 시스템 =====
+
+            // 타이머 시작
+            startTimer() {
+                if (!this.timerEnabled) return;
+
+                // 기존 타이머 정리
+                this.stopTimer();
+
+                // 타이머 표시
+                document.getElementById('turnTimer').style.display = 'block';
+
+                // 시간 초기화
+                this.currentTurnTime = this.turnTimeLimit;
+                this.updateTimerDisplay();
+
+                // 1초마다 업데이트
+                this.timerInterval = setInterval(() => {
+                    this.currentTurnTime--;
+                    this.updateTimerDisplay();
+
+                    if (this.currentTurnTime <= 0) {
+                        // 시간 초과 - 자동 패스
+                        this.onTimeOut();
+                    }
+                }, 1000);
+            }
+
+            // 타이머 정지
+            stopTimer() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+            }
+
+            // 타이머 표시 업데이트
+            updateTimerDisplay() {
+                const display = document.getElementById('timerDisplay');
+                const progressBar = document.getElementById('timerProgressBar');
+
+                // 숫자 표시
+                display.textContent = this.currentTurnTime;
+
+                // 진행바 업데이트
+                const percentage = (this.currentTurnTime / this.turnTimeLimit) * 100;
+                progressBar.style.width = percentage + '%';
+
+                // 색상 변경
+                display.className = 'timer-display';
+                progressBar.className = 'timer-progress-bar';
+
+                if (this.currentTurnTime <= 3) {
+                    // 3초 이하 - 위험 (빨간색, 흔들림)
+                    display.classList.add('danger');
+                    progressBar.classList.add('danger');
+                } else if (this.currentTurnTime <= 5) {
+                    // 5초 이하 - 경고 (노란색, 깜빡임)
+                    display.classList.add('warning');
+                    progressBar.classList.add('warning');
+                }
+            }
+
+            // 시간 초과 처리
+            async onTimeOut() {
+                this.stopTimer();
+
+                // 온라인 모드인 경우
+                if (this.isOnlineMode && this.roomSystem) {
+                    // 내 턴인지 확인
+                    const isMyTurn = this.currentPlayer === this.myOnlineColor;
+
+                    if (isMyTurn) {
+                        // 내 턴에 시간 초과 → AI가 대신 둠
+                        if (!this.isAISubstituting) {
+                            this.addLog(`⏱️ 시간 초과! 컴퓨터가 대신 플레이합니다.`);
+                            // 경고 표시 (처음 한 번만)
+                            this.showConnectionWarning();
+                        }
+
+                        // AI가 자동으로 말을 둠
+                        const move = await this.getAIMove(this.difficulty || 'medium');
+                        if (move) {
+                            // AI가 말을 두고 상대에게 전송
+                            await this.placeStone(move.row, move.col, true);
+                        } else {
+                            // AI도 둘 곳이 없으면 패스
+                            try {
+                                await this.roomSystem.sendMove('pass', -1, -1, {});
+                            } catch (error) {
+                                console.error('패스 전송 실패:', error);
+                            }
+                            this.pass();
+                        }
+                    } else {
+                        // 상대 턴에 시간 초과 → 상대가 AI 대타로 두는 중
+                        this.addLog(`⏱️ 상대방 시간 초과! 잠시 기다려주세요...`);
+                        // 상대방이 AI로 둘 때까지 기다림
+                    }
+                } else {
+                    // 로컬 모드 - 자동 패스
+                    this.addLog(`⏱️ ${this.currentPlayer === 'blue' ? '🔵 파란색' : '🟠 주황색'} 시간 초과! 자동 패스됩니다.`);
+                    this.pass();
+                }
+            }
+
+            // 타이머 활성화/비활성화
+            enableTimer(enabled) {
+                this.timerEnabled = enabled;
+
+                if (enabled) {
+                    document.getElementById('turnTimer').style.display = 'block';
+                    this.startTimer();
+                } else {
+                    document.getElementById('turnTimer').style.display = 'none';
+                    this.stopTimer();
+                }
+            }
+
+            // ===== 온라인 방 시스템 =====
+
+            // 온라인 대전 시작 (방 선택 모달 표시)
+            async startOnlineMatch() {
+                try {
+                    // 플레이어 이름 입력
+                    const playerName = prompt('플레이어 이름을 입력하세요:', `플레이어${Math.floor(Math.random() * 1000)}`);
+                    if (!playerName) return;
+
+                    this.playerName = playerName;
+
+                    // 온라인 방 시스템 객체 생성
+                    if (!this.roomSystem) {
+                        this.roomSystem = new OnlineRoomSystem(SUPABASE_URL, SUPABASE_KEY);
+                    }
+
+                    // 이벤트 핸들러 등록
+                    this.roomSystem.onOpponentMove = (move) => {
+                        this.handleOpponentMove(move);
+                    };
+
+                    this.roomSystem.onRoomReady = (room) => {
+                        this.onRoomReady(room);
+                    };
+
+                    this.roomSystem.onOpponentDisconnected = () => {
+                        this.showOpponentDisconnectedWarning();
+                    };
+
+                    // 방 목록 불러오기 및 모달 표시
+                    await this.showRoomSelection();
+
+                } catch (error) {
+                    console.error('온라인 대전 시작 오류:', error);
+                    alert('온라인 대전 시작에 실패했습니다. 다시 시도해주세요.');
+                }
+            }
+
+            // 방 선택 화면 표시
+            async showRoomSelection() {
+                const modal = document.getElementById('roomModal');
+                const roomSelection = document.getElementById('roomSelection');
+
+                // 방 목록 불러오기
+                const rooms = await this.roomSystem.getAllRooms();
+
+                // 방 카드 생성
+                roomSelection.innerHTML = '';
+                rooms.forEach(room => {
+                    const card = document.createElement('div');
+                    card.className = 'room-card';
+
+                    // 방 상태에 따라 클래스 추가
+                    if (room.status === 'playing') {
+                        card.classList.add('playing');
+                    } else if (room.player1_session && !room.player2_session) {
+                        card.classList.add('waiting');
+                    } else if (room.player1_session && room.player2_session) {
+                        card.classList.add('full');
+                    }
+
+                    // 방 정보 표시
+                    const statusText = room.status === 'playing' ? '게임 중' :
+                                      room.player1_session && room.player2_session ? '인원 초과' :
+                                      room.player1_session ? '대기 중 (1/2)' :
+                                      '비어있음 (0/2)';
+
+                    const playersText = [room.player1_name, room.player2_name].filter(Boolean).join(', ') || '없음';
+
+                    card.innerHTML = `
+                        <div class="room-number">${room.room_number}번 방</div>
+                        <div class="room-status">${statusText}</div>
+                        <div class="room-players">플레이어: ${playersText}</div>
+                    `;
+
+                    // 클릭 이벤트 (비어있거나 1명만 있는 방만 입장 가능)
+                    if (room.status !== 'playing' && !(room.player1_session && room.player2_session)) {
+                        card.onclick = () => this.joinRoom(room.room_number);
+                    } else {
+                        card.style.cursor = 'not-allowed';
+                    }
+
+                    roomSelection.appendChild(card);
+                });
+
+                // 모달 표시
+                modal.classList.add('active');
+
+                // 1초마다 방 목록 새로고침
+                this.roomRefreshInterval = setInterval(async () => {
+                    if (modal.classList.contains('active')) {
+                        await this.showRoomSelection();
+                    } else {
+                        clearInterval(this.roomRefreshInterval);
+                    }
+                }, 2000);
+            }
+
+            // 방 입장
+            async joinRoom(roomNumber) {
+                try {
+                    // 방 입장
+                    const result = await this.roomSystem.joinRoom(roomNumber, this.playerName);
+
+                    // 게임 모드 설정
+                    this.isOnlineMode = true;
+                    this.myOnlineColor = result.myColor;
+                    this.gameMode = 'online';
+
+                    // 모달을 대기 화면으로 변경 (닫지 않음)
+                    const modal = document.getElementById('roomModal');
+                    const modalContent = modal.querySelector('.modal-content');
+                    modalContent.innerHTML = `
+                        <h2>🎮 ${roomNumber}번 방</h2>
+                        <p style="font-size: 1.2em; color: #666;">
+                            ${result.waiting ? '⏳ 상대 플레이어를 기다리는 중...' : '✅ 매칭 완료!'}
+                        </p>
+                        <div style="margin: 30px 0; padding: 20px; background: #f0f4ff; border-radius: 10px;">
+                            <div style="font-size: 1.1em; margin-bottom: 10px;">
+                                <strong>내 색상:</strong> ${this.myOnlineColor === 'blue' ? '🔵 파란색 (선공)' : '🟠 주황색 (후공)'}
+                            </div>
+                            ${result.waiting ?
+                                '<div style="font-size: 0.9em; color: #888;">상대를 기다리고 있습니다...</div>' :
+                                `<div style="font-size: 1.1em;"><strong>상대:</strong> ${result.opponentName}</div>`
+                            }
+                        </div>
+                        <button class="btn btn-cancel-waiting" onclick="game.leaveRoomAndClose()" style="margin-top: 20px;">
+                            나가기
+                        </button>
+                    `;
+
+                    // 방 목록 새로고침 중단
+                    if (this.roomRefreshInterval) {
+                        clearInterval(this.roomRefreshInterval);
+                    }
+
+                    // 온라인 상태 표시
+                    document.getElementById('onlineStatus').style.display = 'block';
+                    document.getElementById('onlineRoomInfo').innerHTML = `
+                        🌐 온라인 대전 중 (${roomNumber}번 방)<br>
+                        내 색상: ${this.myOnlineColor === 'blue' ? '🔵 파란색 (선공)' : '🟠 주황색 (후공)'}<br>
+                        ${result.waiting ? '⏳ 상대 대기 중...' : `vs ${result.opponentName}`}
+                    `;
+
+                    this.addLog(`✅ ${roomNumber}번 방에 입장했습니다.`);
+                    this.addLog(`당신은 ${this.myOnlineColor === 'blue' ? '🔵 파란색 (선공)' : '🟠 주황색 (후공)'} 입니다.`);
+
+                    if (!result.waiting) {
+                        // 즉시 2명 매칭 완료
+                        this.addLog(`🎮 상대: ${result.opponentName}`);
+                    }
+
+                } catch (error) {
+                    console.error('방 입장 오류:', error);
+                    alert(error.message || '방 입장에 실패했습니다.');
+                }
+            }
+
+            // 방 나가기 및 모달 닫기
+            async leaveRoomAndClose() {
+                await this.leaveRoom();
+                document.getElementById('roomModal').classList.remove('active');
+            }
+
+            // 방 나가기
+            async leaveRoom() {
+                if (this.roomSystem && this.roomSystem.currentRoom) {
+                    await this.roomSystem.leaveRoom();
+                    this.isOnlineMode = false;
+                    this.gameMode = 'pvp';
+                    this.enableTimer(false);
+                    document.getElementById('onlineStatus').style.display = 'none';
+                    this.addLog('방에서 나갔습니다.');
+                }
+            }
+
+            // 방이 준비됨 (2명 모두 입장)
+            async onRoomReady(room) {
+                // 모달 닫기
+                document.getElementById('roomModal').classList.remove('active');
+
+                // 3초 카운트다운
+                await this.showCountdown();
+
+                // 게임 시작
+                await this.roomSystem.startGame();
+
+                // 타이머 활성화
+                this.enableTimer(true);
+
+                // 상태 업데이트
+                const opponentName = this.myOnlineColor === 'blue' ? room.player2_name : room.player1_name;
+                document.getElementById('onlineRoomInfo').innerHTML = `
+                    🌐 온라인 대전 중 (${room.room_number}번 방)<br>
+                    내 색상: ${this.myOnlineColor === 'blue' ? '🔵 파란색 (선공)' : '🟠 주황색 (후공)'}<br>
+                    vs ${opponentName}
+                `;
+
+                this.addLog(`🎮 게임 시작! 상대: ${opponentName}`);
+                this.addLog(`⏱️ 턴당 ${this.turnTimeLimit}초 시간제한이 적용됩니다.`);
+
+                // 게임 재시작
+                this.restart();
+            }
+
+            // 카운트다운 표시
+            async showCountdown() {
+                const overlay = document.getElementById('countdownOverlay');
+                const number = document.getElementById('countdownNumber');
+
+                overlay.classList.add('active');
+
+                for (let i = 3; i >= 1; i--) {
+                    number.textContent = i;
+                    number.style.animation = 'none';
+                    setTimeout(() => { number.style.animation = 'countdown-pulse 1s ease-in-out'; }, 10);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+
+                overlay.classList.remove('active');
+            }
+
+            // 타임아웃 경고 표시
+            showConnectionWarning() {
+                const warning = document.getElementById('connectionWarning');
+                const message = document.getElementById('warningMessage');
+
+                message.textContent = '⚠️ 시간 초과! 컴퓨터가 대신 플레이 중입니다.';
+                warning.classList.add('active');
+
+                this.isAISubstituting = true;
+            }
+
+            // 상대방 연결 끊김 경고 표시
+            showOpponentDisconnectedWarning() {
+                const warning = document.getElementById('connectionWarning');
+                const message = document.getElementById('warningMessage');
+
+                message.textContent = '⚠️ 상대방의 연결이 끊어졌습니다. AI가 대신 플레이 중입니다.';
+                warning.classList.add('active');
+            }
+
+            // 수동 플레이 재개
+            resumeManualPlay() {
+                const warning = document.getElementById('connectionWarning');
+                warning.classList.remove('active');
+
+                this.isAISubstituting = false;
+
+                this.addLog('✅ 다시 직접 플레이할 수 있습니다.');
+
+                // 다음 턴부터는 직접 두도록 설정
+                if (this.currentPlayer === this.myOnlineColor && this.timerEnabled) {
+                    this.startTimer();
+                }
+            }
+
+            // 방 선택 모달 닫기
+            closeRoomModal() {
+                document.getElementById('roomModal').classList.remove('active');
+                if (this.roomRefreshInterval) {
+                    clearInterval(this.roomRefreshInterval);
+                }
+            }
+
+            // 재경기 요청 (진 사람이 보냄)
+            async requestRematch() {
+                if (!this.roomSystem || !this.roomSystem.currentRoom) return;
+
+                try {
+                    await this.roomSystem.requestRematch(this.roomSystem.sessionId);
+
+                    // UI 업데이트
+                    const modalButtons = document.getElementById('modalButtons');
+                    modalButtons.innerHTML = `
+                        <p style="width: 100%; text-align: center; font-size: 1.1em; margin-bottom: 15px;">
+                            재경기 요청을 보냈습니다. 상대방의 응답을 기다리는 중...
+                        </p>
+                        <button class="btn btn-cancel-waiting" onclick="game.cancelRematch()">취소</button>
+                    `;
+
+                    this.addLog('🔄 재경기를 요청했습니다.');
+                } catch (error) {
+                    console.error('재경기 요청 오류:', error);
+                    alert('재경기 요청에 실패했습니다.');
+                }
+            }
+
+            // 재경기 수락 (이긴 사람이 수락)
+            async acceptRematch() {
+                if (!this.roomSystem || !this.roomSystem.currentRoom) return;
+
+                try {
+                    await this.roomSystem.acceptRematch();
+
+                    this.addLog('✅ 재경기를 수락했습니다.');
+
+                    // 모달 닫고 게임 재시작
+                    this.closeModal();
+                    await this.startNewGame();
+                } catch (error) {
+                    console.error('재경기 수락 오류:', error);
+                    alert('재경기 수락에 실패했습니다.');
+                }
+            }
+
+            // 재경기 거절
+            async declineRematch() {
+                if (!this.roomSystem || !this.roomSystem.currentRoom) return;
+
+                try {
+                    await this.roomSystem.declineRematch();
+                    this.addLog('❌ 재경기를 거절했습니다.');
+                    await this.leaveRoomAndCloseModal();
+                } catch (error) {
+                    console.error('재경기 거절 오류:', error);
+                }
+            }
+
+            // 재경기 취소
+            async cancelRematch() {
+                if (!this.roomSystem || !this.roomSystem.currentRoom) return;
+
+                try {
+                    await this.roomSystem.cancelRematch();
+                    this.addLog('🚫 재경기 요청을 취소했습니다.');
+                    await this.leaveRoomAndCloseModal();
+                } catch (error) {
+                    console.error('재경기 취소 오류:', error);
+                }
+            }
+
+            // 재경기 상태 폴링 시작
+            startRematchPolling() {
+                if (this.rematchPollingInterval) {
+                    clearInterval(this.rematchPollingInterval);
+                }
+
+                this.rematchPollingInterval = setInterval(async () => {
+                    await this.checkRematchStatus();
+                }, 1000);
+            }
+
+            // 재경기 상태 확인
+            async checkRematchStatus() {
+                if (!this.roomSystem || !this.roomSystem.currentRoom) {
+                    clearInterval(this.rematchPollingInterval);
+                    return;
+                }
+
+                try {
+                    const status = await this.roomSystem.getRematchStatus();
+
+                    if (status.rematch_status === 'requested') {
+                        // 재경기 요청이 들어옴 (이긴 사람)
+                        const modalButtons = document.getElementById('modalButtons');
+                        modalButtons.innerHTML = `
+                            <p style="width: 100%; text-align: center; font-size: 1.1em; margin-bottom: 15px;">
+                                새로운 게임 요청이 왔습니다!
+                            </p>
+                            <button class="btn btn-mode" onclick="game.acceptRematch()">수락</button>
+                            <button class="btn btn-cancel-waiting" onclick="game.declineRematch()">나가기</button>
+                        `;
+                        this.addLog('🔔 상대방이 재경기를 요청했습니다!');
+                    } else if (status.rematch_status === 'accepted') {
+                        // 재경기 수락됨
+                        clearInterval(this.rematchPollingInterval);
+                        this.closeModal();
+                        await this.startNewGame();
+                    } else if (status.rematch_status === 'declined') {
+                        // 재경기 거절됨
+                        clearInterval(this.rematchPollingInterval);
+                        alert('상대방이 재경기를 거절했습니다.');
+                        await this.leaveRoomAndCloseModal();
+                    }
+                } catch (error) {
+                    console.error('재경기 상태 확인 오류:', error);
+                }
+            }
+
+            // 새 게임 시작
+            async startNewGame() {
+                this.addLog('🎮 새 게임을 시작합니다!');
+
+                // 게임 상태 초기화
+                this.board = Array(9).fill(null).map(() => Array(9).fill(null));
+                this.board[4][4] = 'neutral';
+                this.currentPlayer = 'blue';
+                this.blueStones = 40;
+                this.orangeStones = 40;
+                this.consecutivePasses = 0;
+                this.gameOver = false;
+                this.moveHistory = [];
+                this.isAISubstituting = false;
+
+                // 방 상태를 playing으로 재설정
+                if (this.roomSystem) {
+                    await this.roomSystem.resetGameForRematch();
+                }
+
+                // UI 업데이트
+                this.renderBoard();
+                this.updateUI();
+
+                // 타이머 재시작
+                if (this.timerEnabled) {
+                    this.startTimer();
+                }
+            }
+
+            // 방 나가기 및 모달 닫기
+            async leaveRoomAndCloseModal() {
+                if (this.rematchPollingInterval) {
+                    clearInterval(this.rematchPollingInterval);
+                }
+                await this.leaveRoom();
+                this.closeModal();
+            }
+
+            // 상대 이동 처리
+            handleOpponentMove(move) {
+                console.log('[Game] 상대 이동 수신:', move);
+
+                if (move.move_type === 'place') {
+                    // 상대가 말을 놓음
+                    this.placeStone(move.row_pos, move.col_pos, false); // 전송하지 않음
+                } else if (move.move_type === 'pass') {
+                    // 상대가 패스
+                    this.pass();
+                }
+            }
+
+            // 게임 재시작
+            restart() {
+                this.board = Array(9).fill(null).map(() => Array(9).fill(null));
+                this.board[4][4] = 'neutral';
+                this.currentPlayer = 'blue';
+                this.blueStones = 40;
+                this.orangeStones = 40;
+                this.consecutivePasses = 0;
+                this.gameOver = false;
+                this.moveHistory = [];
+
+                // 타이머 재시작
+                if (this.timerEnabled) {
+                    this.startTimer();
+                }
+
+                document.getElementById('gameLog').innerHTML = '<div class="log-entry">게임 재시작!</div>';
+                this.closeModal();
+                this.renderBoard();
+                this.updateUI();
+            }
+
+            // UI 업데이트
+            updateUI() {
+                const turnElement = document.getElementById('currentTurn');
+                turnElement.className = `current-turn ${this.currentPlayer}-turn`;
+                turnElement.textContent = `${this.currentPlayer === 'blue' ? '🔵 파란색' : '🟠 주황색'} 차례`;
+
+                document.getElementById('blueStones').textContent = `${this.blueStones}개 남음`;
+                document.getElementById('orangeStones').textContent = `${this.orangeStones}개 남음`;
+            }
+
+            // 로그 추가
+            addLog(message) {
+                const logElement = document.getElementById('gameLog');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.textContent = message;
+                logElement.insertBefore(entry, logElement.firstChild);
+            }
+        }
+
+        // 게임 인스턴스 생성
+        const game = new GreatKingdomGame();
+
+        // ===== AI 시스템 완전 재구축 =====
+        
+        // 난이도 설정 함수
+        game.setDifficulty = function(difficulty) {
+            this.aiDifficulty = difficulty;
+            
+            // 버튼 활성화 상태 업데이트
+            document.querySelectorAll('.btn-difficulty').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const difficultyInfo = {
+                'easy': {
+                    text: '😊 쉬움 단계<br>- 기본적인 전략만 사용<br>- 초보자에게 적합',
+                    color: '#2ecc71'
+                },
+                'medium': {
+                    text: '🤔 보통 단계<br>- 2수 앞을 내다봄<br>- 공격과 방어 균형',
+                    color: '#f39c12'
+                },
+                'hard': {
+                    text: '😈 어려움 단계<br>- 4수 앞을 내다봄<br>- 고급 전략 사용<br>- 이기기 매우 어려움',
+                    color: '#e74c3c'
+                }
+            };
+            
+            const info = difficultyInfo[difficulty];
+            document.getElementById('difficultyInfo').innerHTML = info.text;
+            document.getElementById('difficultyInfo').style.borderLeft = `3px solid ${info.color}`;
+            document.getElementById('difficultyInfo').style.paddingLeft = '10px';
+            
+            // 해당 버튼 활성화
+            const buttons = {
+                'easy': '.btn-easy',
+                'medium': '.btn-medium',
+                'hard': '.btn-hard'
+            };
+            document.querySelector(buttons[difficulty]).classList.add('active');
+            
+            this.addLog(`난이도 변경: ${difficulty === 'easy' ? '😊 쉬움' : difficulty === 'medium' ? '🤔 보통' : '😈 어려움'}`);
+            this.restart();
+        };
+        
+        // setMode 함수 재정의
+        game.setMode = function(mode) {
+            this.gameMode = mode;
+            const aiPanel = document.getElementById('aiDifficultyPanel');
+            
+            if (mode === 'ai') {
+                aiPanel.style.display = 'block';
+                this.addLog(`🤖 컴퓨터 대전 모드 선택`);
+                // 기본 난이도 보통으로 설정
+                if (!document.querySelector('.btn-difficulty.active')) {
+                    this.setDifficulty('medium');
+                }
+            } else {
+                aiPanel.style.display = 'none';
+                this.addLog('👥 대인 경기 모드');
+            }
+            
+            this.restart();
+        };
+
+        // AI 이동 함수 완전 재구축
+        game.aiMove = function() {
+            const validMoves = this.getValidMoves();
+            
+            if (validMoves.length === 0) {
+                this.pass();
+                return;
+            }
+
+            let selectedMove;
+            
+            switch(this.aiDifficulty) {
+                case 'easy':
+                    selectedMove = this.aiMoveEasy(validMoves);
+                    break;
+                case 'medium':
+                    selectedMove = this.aiMoveMedium(validMoves);
+                    break;
+                case 'hard':
+                    selectedMove = this.aiMoveHard(validMoves);
+                    break;
+                default:
+                    selectedMove = this.aiMoveMedium(validMoves);
+            }
+            
+            if (selectedMove) {
+                this.placeStone(selectedMove[0], selectedMove[1]);
+            } else {
+                this.pass();
+            }
+        };
+
+        // 쉬움 AI: 기본 전략
+        game.aiMoveEasy = function(validMoves) {
+            // 1. 상대를 잡을 수 있는 수가 있으면 그걸 둠
+            for (const move of validMoves) {
+                const [row, col] = move;
+                this.board[row][col] = 'orange';
+                const captured = this.checkCapture(row, col);
+                this.board[row][col] = null;
+                
+                if (captured.length > 0) {
+                    return move; // 즉시 잡을 수 있으면 그 수를 둔다
+                }
+            }
+            
+            // 2. 기본 점수 평가
+            const scored = validMoves.map(move => {
+                let score = 0;
+                const [row, col] = move;
+                
+                // 주변 확인
+                const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                for (const [dr, dc] of directions) {
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (this.isValidCell(nr, nc)) {
+                        if (this.board[nr][nc] === 'blue') score += 3; // 상대 근처
+                        if (this.board[nr][nc] === 'orange') score += 2; // 내 말 근처
+                        if (this.board[nr][nc] === null) score += 1; // 빈 공간
+                    }
+                }
+                
+                // 중앙 선호
+                const centerDist = Math.abs(row - 4) + Math.abs(col - 4);
+                score += (8 - centerDist);
+                
+                return { move, score };
+            });
+
+            scored.sort((a, b) => b.score - a.score);
+            const topMoves = scored.slice(0, Math.max(1, Math.floor(scored.length * 0.3)));
+            return topMoves[Math.floor(Math.random() * topMoves.length)].move;
+        };
+
+        // 보통 AI: 2수 앞을 봄
+        game.aiMoveMedium = function(validMoves) {
+            // 1. 상대를 잡을 수 있는 수
+            for (const move of validMoves) {
+                const [row, col] = move;
+                this.board[row][col] = 'orange';
+                const captured = this.checkCapture(row, col);
+                this.board[row][col] = null;
+                
+                if (captured.length > 0) {
+                    return move;
+                }
+            }
+            
+            // 2. 내가 잡히는지 확인 (방어)
+            const defenseMoves = [];
+            for (const move of validMoves) {
+                const [row, col] = move;
+                let willBeCaptured = false;
+                
+                // 이 수를 두면 내가 잡히는지 시뮬레이션
+                this.board[row][col] = 'orange';
+                
+                // 상대가 다음 수에서 나를 잡을 수 있는지 확인
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (this.board[r][c] === null) {
+                            this.board[r][c] = 'blue';
+                            const tempCapture = this.checkCapture(r, c);
+                            this.board[r][c] = null;
+                            
+                            if (tempCapture.some(([cr, cc]) => cr === row && cc === col)) {
+                                willBeCaptured = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (willBeCaptured) break;
+                }
+                
+                this.board[row][col] = null;
+                
+                if (!willBeCaptured) {
+                    defenseMoves.push(move);
+                }
+            }
+            
+            // 안전한 수가 있으면 그 중에서 선택
+            const movesToConsider = defenseMoves.length > 0 ? defenseMoves : validMoves;
+            
+            // 3. 점수 평가 (더 정교하게)
+            const scored = movesToConsider.map(move => {
+                let score = 0;
+                const [row, col] = move;
+                
+                // 주변 평가
+                const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                let emptyCount = 0;
+                let myCount = 0;
+                let enemyCount = 0;
+                
+                for (const [dr, dc] of directions) {
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (this.isValidCell(nr, nc)) {
+                        if (this.board[nr][nc] === null) emptyCount++;
+                        else if (this.board[nr][nc] === 'orange') myCount++;
+                        else if (this.board[nr][nc] === 'blue') enemyCount++;
+                    }
+                }
+                
+                // 영토 확장 가능성
+                score += emptyCount * 3;
+                // 연결성
+                score += myCount * 2;
+                // 상대 견제
+                score += enemyCount * 4;
+                
+                // 중앙 선호 (초반)
+                if (this.moveHistory.length < 20) {
+                    const centerDist = Math.abs(row - 4) + Math.abs(col - 4);
+                    score += (8 - centerDist) * 1.5;
+                }
+                
+                return { move, score };
+            });
+
+            scored.sort((a, b) => b.score - a.score);
+            const topMoves = scored.slice(0, Math.max(1, Math.floor(scored.length * 0.2)));
+            return topMoves[Math.floor(Math.random() * topMoves.length)].move;
+        };
+
+        // 어려움 AI: 4수 앞을 봄 + 고급 전략
+        game.aiMoveHard = function(validMoves) {
+            // 1. 즉시 승리 수
+            for (const move of validMoves) {
+                const [row, col] = move;
+                this.board[row][col] = 'orange';
+                const captured = this.checkCapture(row, col);
+                this.board[row][col] = null;
+                
+                if (captured.length > 0) {
+                    return move;
+                }
+            }
+            
+            // 2. 정교한 방어 (2수 앞까지)
+            const safeMoves = validMoves.filter(move => {
+                const [row, col] = move;
+                this.board[row][col] = 'orange';
+                
+                let isSafe = true;
+                // 상대의 모든 가능한 응수 확인
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (this.board[r][c] === null) {
+                            this.board[r][c] = 'blue';
+                            const captured = this.checkCapture(r, c);
+                            this.board[r][c] = null;
+                            
+                            if (captured.some(([cr, cc]) => cr === row && cc === col)) {
+                                isSafe = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!isSafe) break;
+                }
+                
+                this.board[row][col] = null;
+                return isSafe;
+            });
+            
+            const movesToConsider = safeMoves.length > 0 ? safeMoves : validMoves;
+            
+            // 3. 고급 점수 평가
+            const scored = movesToConsider.map(move => {
+                let score = 0;
+                const [row, col] = move;
+                
+                // 시뮬레이션: 이 수를 두었을 때의 보드 평가
+                this.board[row][col] = 'orange';
+                
+                // 영향력 계산 (2칸 범위)
+                for (let dr = -2; dr <= 2; dr++) {
+                    for (let dc = -2; dc <= 2; dc++) {
+                        const nr = row + dr;
+                        const nc = col + dc;
+                        if (this.isValidCell(nr, nc) && this.board[nr][nc] === null) {
+                            const dist = Math.abs(dr) + Math.abs(dc);
+                            score += (5 - dist); // 거리에 따라 점수
+                        }
+                    }
+                }
+                
+                // 연결성 평가
+                const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                for (const [dr, dc] of directions) {
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (this.isValidCell(nr, nc)) {
+                        if (this.board[nr][nc] === 'orange') {
+                            score += 5; // 내 말과 연결
+                        } else if (this.board[nr][nc] === 'blue') {
+                            score += 7; // 상대 근처 (견제)
+                        }
+                    }
+                }
+                
+                // 상대 포위 가능성
+                let nearbyEnemies = 0;
+                for (const [dr, dc] of directions) {
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (this.isValidCell(nr, nc) && this.board[nr][nc] === 'blue') {
+                        nearbyEnemies++;
+                    }
+                }
+                if (nearbyEnemies >= 2) {
+                    score += 10; // 상대를 둘러싸기 시작
+                }
+                
+                // 중앙 제어 (초반만)
+                if (this.moveHistory.length < 15) {
+                    const centerDist = Math.abs(row - 4) + Math.abs(col - 4);
+                    score += (8 - centerDist) * 2;
+                }
+                
+                this.board[row][col] = null;
+                
+                return { move, score };
+            });
+
+            scored.sort((a, b) => b.score - a.score);
+            // 상위 10%만 고려
+            const topMoves = scored.slice(0, Math.max(1, Math.floor(scored.length * 0.1)));
+            return topMoves[0].move; // 최선의 수만 선택
+        };
+
+        // 초기 난이도 설정
+        game.setDifficulty('medium');
+    </script>
+</body>
+</html>

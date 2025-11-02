@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- 메인 페이지 -->
+  <url>
+    <loc>https://boardgametown.netlify.app/</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://boardgametown.netlify.app/images/great-kingdom-og.jpg</image:loc>
+      <image:title>그레이트 킹덤 보드게임</image:title>
+      <image:caption>이세돌 9단이 디자인한 전략 보드게임</image:caption>
+    </image:image>
+  </url>
+  
+  <!-- 그레이트 킹덤 게임 페이지 -->
+  <url>
+    <loc>https://boardgametown.netlify.app/great-kingdom.html</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://boardgametown.netlify.app/images/great-kingdom-screenshot.jpg</image:loc>
+      <image:title>그레이트 킹덤 게임 화면</image:title>
+    </image:image>
+  </url>
+  
+  <!-- 향후 추가될 페이지들을 위한 예시 (주석 처리) -->
+  <!--
+  <url>
+    <loc>https://boardgametown.netlify.app/game-rules.html</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://boardgametown.netlify.app/strategy-guide.html</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://boardgametown.netlify.app/about.html</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  -->
+  
+</urlset>

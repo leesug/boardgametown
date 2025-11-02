@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 원주형 사다리 게임</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            overflow: hidden;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 10;
+            background: transparent;
+            padding: 0;
+        }
+
+        #setupPhase {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 90vw;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .settings {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            padding: 8px 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 80px;
+            text-align: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            font-size: 18px;
+            padding: 15px 40px;
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .btn-results {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+
+        #info {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 1400px;
+            width: auto;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            font-size: 14px;
+            color: #94a3b8;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        #info .info-text {
+            flex: 1;
+        }
+
+        #info button {
+            margin: 0;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 10px;
+        }
+
+        .btn-home {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        }
+
+        .btn-home:hover {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+        }
+
+        .btn-random {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-random:hover {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .setting-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .setting-group label {
+            margin: 0;
+        }
+
+        .setting-group input[type="number"] {
+            width: 80px;
+        }
+
+        .labels-editor {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+        }
+
+        .label-section {
+            margin-bottom: 15px;
+        }
+
+        .label-section h3 {
+            font-size: 14px;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .label-inputs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .label-input {
+            padding: 6px 10px;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 80px;
+            text-align: center;
+        }
+
+        .label-input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+        }
+
+        .player-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .player-btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-width: 60px;
+        }
+
+        .phase {
+            display: none;
+        }
+
+        .phase.active {
+            display: block;
+        }
+
+        /* Compact playing phase - 2 rows at top */
+        #playingPhase {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 1400px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            padding: 12px 20px;
+            border-radius: 0 0 12px 12px;
+        }
+
+        #playingPhase.active {
+            display: flex;
+            align-items: stretch;
+            gap: 20px;
+        }
+
+        #playingPhase h1 {
+            display: none;
+        }
+
+        .control-rows-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .control-row-label {
+            font-weight: 600;
+            min-width: 80px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .control-row-label.start {
+            color: #10b981;
+        }
+
+        .control-row-label.end {
+            color: #ef4444;
+        }
+
+        .control-row .player-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .control-row .player-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            margin: 0;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        #playingPhase button.btn-results {
+            padding: 20px 30px;
+            font-size: 18px;
+            margin: 0;
+            white-space: nowrap;
+            border-radius: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-self: stretch;
+        }
+
+        /* Results Popup */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup.active {
+            display: flex;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 25px 35px;
+            border-radius: 15px;
+            max-width: 800px;
+            width: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-content h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .results-table {
+            margin: 20px 0;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .result-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .result-start {
+            color: #10b981;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .result-arrow {
+            color: #667eea;
+            font-weight: bold;
+            margin: 0 15px;
+            font-size: 16px;
+        }
+
+        .result-end {
+            color: #ef4444;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+
+    <div id="controls">
+        <!-- Phase 1: Setup -->
+        <div id="setupPhase" class="phase active">
+            <h1>🎯 공평사다리게임</h1>
+
+            <div class="settings">
+                <div class="setting-group">
+                    <label>참가자 수</label>
+                    <input type="number" id="players" min="2" max="12" value="5" onchange="updateLabelInputs()">
+                </div>
+            </div>
+
+            <div class="labels-editor">
+                <div class="label-section">
+                    <h3>📍 출발 라벨</h3>
+                    <div class="label-inputs" id="startLabels"></div>
+                </div>
+                <div class="label-section">
+                    <h3>🎯 도착 라벨</h3>
+                    <div class="label-inputs" id="endLabels"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="btn-random" onclick="randomizeEndLabels()">🎲 랜덤배치</button>
+                <button class="btn-start" onclick="startGame()">게임 시작</button>
+            </div>
+        </div>
+
+        <!-- Phase 2: Playing -->
+        <div id="playingPhase" class="phase">
+            <h1>🎯 선택하세요</h1>
+
+            <div class="control-rows-container">
+                <!-- Row 1: 출발점 -->
+                <div class="control-row">
+                    <span class="control-row-label start">📍 출발점</span>
+                    <div class="player-buttons" id="playerButtons"></div>
+                </div>
+
+                <!-- Row 2: 도착점 -->
+                <div class="control-row">
+                    <span class="control-row-label end">🎯 도착점</span>
+                    <div class="player-buttons" id="destinationButtons"></div>
+                    <div id="result" style="font-weight: 600; color: #667eea; font-size: 14px; white-space: nowrap; margin-left: 15px;"></div>
+                </div>
+            </div>
+
+            <button class="btn-results" onclick="showAllResults()">전체 결과 보기</button>
+        </div>
+    </div>
+
+    <!-- Results Popup -->
+    <div id="resultsPopup" class="popup">
+        <div class="popup-content">
+            <h2>📊 전체 결과</h2>
+            <div class="results-table" id="resultsTable"></div>
+            <div class="popup-buttons">
+                <button class="btn-restart" onclick="restartGame()">다시 하기</button>
+                <button onclick="closeResultsPopup()">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="info">
+        <span class="info-text">🖱️ 마우스 드래그: 회전 | 스크롤: 확대/축소 | 원통형 구조로 모든 위치가 공정합니다!</span>
+        <button class="btn-home" onclick="window.location.href='index.html'">🏠 홈으로</button>
+        <button onclick="resetCamera()">카메라 리셋</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer;
+        let ladderGroup;
+        let playerCount = 5;
+        let levelCount = 10;
+        let ladderConnections = [];
+        let isAnimating = false;
+        let gameStarted = false;
+        let ladderResults = []; // Store final results
+
+        // Labels
+        let startLabels = [];
+        let endLabels = [];
+
+        // Camera controls
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let rotation = { x: 0, y: 0 };
+        let zoom = 15;
+
+        // Colors
+        const COLORS = {
+            line: 0x4a5568,
+            bridge: 0xf59e0b,
+            start: 0x10b981,
+            end: 0xef4444,
+            path: 0x8b5cf6,
+            cylinder: 0x1e293b
+        };
+
+        init();
+        initializeLabels();
+        updateLabelInputs();
+        animate();
+
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a);
+            scene.fog = new THREE.Fog(0x0f172a, 20, 50);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(
+                60,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(0, 0, zoom);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            const pointLight = new THREE.PointLight(0x8b5cf6, 1, 50);
+            pointLight.position.set(0, 0, 0);
+            scene.add(pointLight);
+
+            // Event listeners
+            renderer.domElement.addEventListener('mousedown', onMouseDown);
+            renderer.domElement.addEventListener('mousemove', onMouseMove);
+            renderer.domElement.addEventListener('mouseup', onMouseUp);
+            renderer.domElement.addEventListener('wheel', onWheel);
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function startGame() {
+            gameStarted = true;
+            playerCount = parseInt(document.getElementById('players').value);
+
+            // Calculate random level count: between playerCount and playerCount * 1.5
+            const minLevels = playerCount;
+            const maxLevels = Math.floor(playerCount * 1.5);
+            levelCount = Math.floor(Math.random() * (maxLevels - minLevels + 1)) + minLevels;
+
+            // Switch to playing phase
+            document.getElementById('setupPhase').classList.remove('active');
+            document.getElementById('playingPhase').classList.add('active');
+
+            generateLadder();
+        }
+
+        function generateLadder() {
+            // Clear existing ladder
+            if (ladderGroup) {
+                scene.remove(ladderGroup);
+            }
+
+            ladderGroup = new THREE.Group();
+            ladderConnections = [];
+            ladderResults = [];
+
+            const radius = 5;
+            const height = levelCount * 0.8;
+            const angleStep = (Math.PI * 2) / playerCount;
+
+            // Create semi-transparent cylinder for reference
+            const cylinderGeometry = new THREE.CylinderGeometry(radius, radius, height, 32, 1, true);
+            const cylinderMaterial = new THREE.MeshBasicMaterial({
+                color: COLORS.cylinder,
+                transparent: true,
+                opacity: 0.05,
+                side: THREE.DoubleSide,
+                wireframe: true
+            });
+            const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+            ladderGroup.add(cylinder);
+
+            // Generate ladder structure
+            const ladder = [];
+            for (let i = 0; i < playerCount; i++) {
+                ladder[i] = [];
+                const angle = i * angleStep;
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+
+                for (let level = 0; level <= levelCount; level++) {
+                    const y = (height / 2) - (level * height / levelCount);
+                    ladder[i][level] = i;
+
+                    // Create vertical line
+                    if (level < levelCount) {
+                        const nextY = (height / 2) - ((level + 1) * height / levelCount);
+                        const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                            new THREE.Vector3(x, y, z),
+                            new THREE.Vector3(x, nextY, z)
+                        ]);
+                        const lineMaterial = new THREE.LineBasicMaterial({
+                            color: COLORS.line,
+                            linewidth: 2
+                        });
+                        const line = new THREE.Line(lineGeometry, lineMaterial);
+                        ladderGroup.add(line);
+                    }
+
+                    // Create start/end markers
+                    if (level === 0 || level === levelCount) {
+                        const sphereGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+                        const sphereMaterial = new THREE.MeshStandardMaterial({
+                            color: level === 0 ? COLORS.start : COLORS.end,
+                            emissive: level === 0 ? COLORS.start : COLORS.end,
+                            emissiveIntensity: 0.3
+                        });
+                        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                        sphere.position.set(x, y, z);
+                        ladderGroup.add(sphere);
+
+                        // Add labels
+                        if (level === 0) {
+                            addTextLabel(startLabels[i] || `${i + 1}번`, x, y + 0.5, z, COLORS.start);
+                        } else if (level === levelCount) {
+                            addTextLabel(endLabels[i] || '', x, y - 0.5, z, COLORS.end);
+                        }
+                    }
+                }
+            }
+
+            // Initialize position tracking array - each position tracks which path it contains
+            const pathMapping = Array.from({ length: playerCount }, (_, i) => i);
+
+            // Generate random bridges
+            const bridgesPerLevel = Math.floor(playerCount * 0.6);
+            for (let level = 0; level < levelCount; level++) {
+                const availablePositions = Array.from({ length: playerCount }, (_, i) => i);
+                shuffleArray(availablePositions);
+
+                const bridgesThisLevel = [];
+
+                for (let b = 0; b < bridgesPerLevel; b++) {
+                    if (availablePositions.length < 2) break;
+
+                    const pos1 = availablePositions.pop();
+                    const pos2 = (pos1 + 1) % playerCount; // Always connect to next position (circular)
+
+                    // Check if pos2 is still available
+                    const pos2Index = availablePositions.indexOf(pos2);
+                    if (pos2Index !== -1) {
+                        availablePositions.splice(pos2Index, 1);
+                    } else {
+                        continue; // pos2 already used, skip this bridge
+                    }
+
+                    // Swap the paths at these positions
+                    const temp = pathMapping[pos1];
+                    pathMapping[pos1] = pathMapping[pos2];
+                    pathMapping[pos2] = temp;
+
+                    // Draw bridge
+                    const angle1 = pos1 * angleStep;
+                    const angle2 = pos2 * angleStep;
+                    const x1 = Math.cos(angle1) * radius;
+                    const z1 = Math.sin(angle1) * radius;
+                    const x2 = Math.cos(angle2) * radius;
+                    const z2 = Math.sin(angle2) * radius;
+                    const y = (height / 2) - ((level + 0.5) * height / levelCount);
+
+                    const bridgeGeometry = new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(x1, y, z1),
+                        new THREE.Vector3(x2, y, z2)
+                    ]);
+                    const bridgeMaterial = new THREE.LineBasicMaterial({
+                        color: COLORS.bridge,
+                        linewidth: 3
+                    });
+                    const bridge = new THREE.Line(bridgeGeometry, bridgeMaterial);
+                    ladderGroup.add(bridge);
+
+                    ladderConnections.push({
+                        level,
+                        from: pos1,
+                        to: pos2,
+                        geometry: bridgeGeometry
+                    });
+                }
+            }
+
+            // Store final results - pathMapping now contains where each starting position ends up
+            // pathMapping[i] tells us which starting position's path is currently at position i
+            // We need to invert this: ladderResults[i] should tell us where starting position i ends up
+            for (let i = 0; i < playerCount; i++) {
+                // Find where path that started at position i ended up
+                for (let j = 0; j < playerCount; j++) {
+                    if (pathMapping[j] === i) {
+                        ladderResults[i] = j;
+                        break;
+                    }
+                }
+            }
+
+            scene.add(ladderGroup);
+            updatePlayerButtons();
+        }
+
+        function addTextLabel(text, x, y, z, color) {
+            if (!text) return;
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 128;
+
+            // Get color as hex string
+            const colorStr = '#' + color.toString(16).padStart(6, '0');
+
+            context.fillStyle = colorStr;
+            context.font = 'Bold 50px Arial';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(text, 128, 64);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.position.set(x, y, z);
+            sprite.scale.set(1.5, 0.75, 1);
+
+            ladderGroup.add(sprite);
+        }
+
+        function initializeLabels() {
+            playerCount = parseInt(document.getElementById('players').value);
+
+            // Initialize start labels
+            startLabels = [];
+            for (let i = 0; i < playerCount; i++) {
+                startLabels.push(`${i + 1}번`);
+            }
+
+            // Initialize end labels with "당첨!" at random position
+            endLabels = [];
+            const winnerPosition = Math.floor(Math.random() * playerCount);
+            for (let i = 0; i < playerCount; i++) {
+                endLabels.push(i === winnerPosition ? '당첨!' : '');
+            }
+        }
+
+        function updateLabelInputs() {
+            playerCount = parseInt(document.getElementById('players').value);
+
+            // Resize arrays if needed
+            while (startLabels.length < playerCount) {
+                startLabels.push(`${startLabels.length + 1}번`);
+            }
+            while (endLabels.length < playerCount) {
+                endLabels.push('');
+            }
+
+            startLabels = startLabels.slice(0, playerCount);
+            endLabels = endLabels.slice(0, playerCount);
+
+            // Update start labels inputs
+            const startContainer = document.getElementById('startLabels');
+            startContainer.innerHTML = '';
+            for (let i = 0; i < playerCount; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'label-input';
+                input.value = startLabels[i];
+                input.placeholder = `${i + 1}번`;
+                input.onchange = (e) => {
+                    startLabels[i] = e.target.value;
+                };
+                startContainer.appendChild(input);
+            }
+
+            // Update end labels inputs
+            const endContainer = document.getElementById('endLabels');
+            endContainer.innerHTML = '';
+            for (let i = 0; i < playerCount; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'label-input';
+                input.value = endLabels[i];
+                input.placeholder = '';
+                input.onchange = (e) => {
+                    endLabels[i] = e.target.value;
+                };
+                endContainer.appendChild(input);
+            }
+        }
+
+        function randomizeEndLabels() {
+            // Get current end labels
+            const currentLabels = [...endLabels];
+
+            // Fisher-Yates shuffle algorithm
+            for (let i = currentLabels.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [currentLabels[i], currentLabels[j]] = [currentLabels[j], currentLabels[i]];
+            }
+
+            // Update endLabels array
+            endLabels = currentLabels;
+
+            // Re-render the input fields with shuffled values
+            updateLabelInputs();
+        }
+
+        function updatePlayerButtons() {
+            // Update start buttons
+            const startContainer = document.getElementById('playerButtons');
+            startContainer.innerHTML = '';
+
+            for (let i = 0; i < playerCount; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'player-btn';
+                btn.textContent = startLabels[i] || `${i + 1}번`;
+                btn.onclick = () => tracePathFromStart(i);
+                startContainer.appendChild(btn);
+            }
+
+            // Update destination buttons
+            const destContainer = document.getElementById('destinationButtons');
+            destContainer.innerHTML = '';
+
+            for (let i = 0; i < playerCount; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'player-btn';
+                btn.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                btn.textContent = endLabels[i] || `${i + 1}번`;
+                btn.onclick = () => tracePathFromEnd(i);
+                destContainer.appendChild(btn);
+            }
+
+            document.getElementById('result').textContent = '';
+
+            // Dynamically adjust playingPhase width based on player count
+            adjustPlayingPhaseWidth();
+        }
+
+        function adjustPlayingPhaseWidth() {
+            const playingPhase = document.getElementById('playingPhase');
+
+            // Constants for calculation
+            const labelWidth = 80; // control-row-label min-width
+            const buttonWidth = 85; // approximate width per button (padding 8px*2 + text)
+            const buttonGap = 8; // gap between buttons
+            const resultsButtonWidth = 180; // approximate width of results button
+            const containerGap = 20; // gap between containers
+            const padding = 40; // padding 12px * 2 + some extra
+            const rowGap = 15; // gap in control-row
+
+            // Calculate width needed for buttons in one row
+            const buttonsPerRow = Math.ceil(playerCount / 2);
+            const buttonsWidth = (buttonsPerRow * buttonWidth) + ((buttonsPerRow - 1) * buttonGap);
+
+            // Total width calculation
+            const totalWidth = labelWidth + rowGap + buttonsWidth + containerGap + resultsButtonWidth + padding;
+
+            // Set the width with min and max constraints
+            const finalWidth = Math.min(Math.max(totalWidth, 800), 1400);
+            playingPhase.style.width = finalWidth + 'px';
+        }
+
+        function tracePathFromStart(startPos) {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            // Remove previous path
+            const previousPaths = ladderGroup.children.filter(child =>
+                child.userData && child.userData.isPath
+            );
+            previousPaths.forEach(path => ladderGroup.remove(path));
+
+            const radius = 5;
+            const height = levelCount * 0.8;
+            const angleStep = (Math.PI * 2) / playerCount;
+
+            let currentPos = startPos;
+            const pathPoints = [];
+            const angle = startPos * angleStep;
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            const startY = height / 2;
+            pathPoints.push(new THREE.Vector3(x, startY, z));
+
+            // Trace through levels
+            for (let level = 0; level < levelCount; level++) {
+                const y1 = (height / 2) - (level * height / levelCount);
+                const y2 = (height / 2) - ((level + 0.5) * height / levelCount);
+                const y3 = (height / 2) - ((level + 1) * height / levelCount);
+
+                // Check for bridge
+                const bridge = ladderConnections.find(conn =>
+                    conn.level === level && (conn.from === currentPos || conn.to === currentPos)
+                );
+
+                if (bridge) {
+                    const newPos = bridge.from === currentPos ? bridge.to : bridge.from;
+
+                    const angle1 = currentPos * angleStep;
+                    const x1 = Math.cos(angle1) * radius;
+                    const z1 = Math.sin(angle1) * radius;
+                    pathPoints.push(new THREE.Vector3(x1, y2, z1));
+
+                    const angle2 = newPos * angleStep;
+                    const x2 = Math.cos(angle2) * radius;
+                    const z2 = Math.sin(angle2) * radius;
+                    pathPoints.push(new THREE.Vector3(x2, y2, z2));
+
+                    currentPos = newPos;
+                }
+
+                const angleEnd = currentPos * angleStep;
+                const xEnd = Math.cos(angleEnd) * radius;
+                const zEnd = Math.sin(angleEnd) * radius;
+                pathPoints.push(new THREE.Vector3(xEnd, y3, zEnd));
+            }
+
+            // Highlight start point
+            highlightPoint(startPos, 'start', true);
+
+            // Animate path
+            animatePath(pathPoints, currentPos, 'forward');
+        }
+
+        function tracePathFromEnd(endPos) {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            // Remove previous path
+            const previousPaths = ladderGroup.children.filter(child =>
+                child.userData && child.userData.isPath
+            );
+            previousPaths.forEach(path => ladderGroup.remove(path));
+
+            const radius = 5;
+            const height = levelCount * 0.8;
+            const angleStep = (Math.PI * 2) / playerCount;
+
+            // Find which start position leads to this end position
+            let startPos = -1;
+            for (let i = 0; i < playerCount; i++) {
+                if (ladderResults[i] === endPos) {
+                    startPos = i;
+                    break;
+                }
+            }
+
+            if (startPos === -1) {
+                isAnimating = false;
+                return;
+            }
+
+            // Build the forward path first to get correct route
+            let currentPos = startPos;
+            const forwardPath = [startPos];
+
+            for (let level = 0; level < levelCount; level++) {
+                const bridge = ladderConnections.find(conn =>
+                    conn.level === level && (conn.from === currentPos || conn.to === currentPos)
+                );
+                if (bridge) {
+                    currentPos = bridge.from === currentPos ? bridge.to : bridge.from;
+                }
+                forwardPath.push(currentPos);
+            }
+
+            // Now build the reverse animation path from end to start
+            const pathPoints = [];
+
+            // Start at end position
+            const endAngle = endPos * angleStep;
+            const xEnd = Math.cos(endAngle) * radius;
+            const zEnd = Math.sin(endAngle) * radius;
+            const endY = -(height / 2);
+            pathPoints.push(new THREE.Vector3(xEnd, endY, zEnd));
+
+            // Trace backwards using the forward path
+            for (let level = levelCount - 1; level >= 0; level--) {
+                const y1 = -(height / 2) + ((levelCount - level) * height / levelCount);
+                const y2 = -(height / 2) + ((levelCount - level - 0.5) * height / levelCount);
+
+                const posAtThisLevel = forwardPath[level + 1];
+                const posAtNextLevel = forwardPath[level];
+
+                // Check if there's a bridge at this level
+                const bridge = ladderConnections.find(conn =>
+                    conn.level === level &&
+                    ((conn.from === posAtThisLevel && conn.to === posAtNextLevel) ||
+                     (conn.from === posAtNextLevel && conn.to === posAtThisLevel))
+                );
+
+                if (bridge) {
+                    // There's a bridge - draw the crossing
+                    const angle1 = posAtThisLevel * angleStep;
+                    const x1 = Math.cos(angle1) * radius;
+                    const z1 = Math.sin(angle1) * radius;
+                    pathPoints.push(new THREE.Vector3(x1, y2, z1));
+
+                    const angle2 = posAtNextLevel * angleStep;
+                    const x2 = Math.cos(angle2) * radius;
+                    const z2 = Math.sin(angle2) * radius;
+                    pathPoints.push(new THREE.Vector3(x2, y2, z2));
+                }
+
+                // Move up to next level
+                const angleNext = posAtNextLevel * angleStep;
+                const xNext = Math.cos(angleNext) * radius;
+                const zNext = Math.sin(angleNext) * radius;
+                pathPoints.push(new THREE.Vector3(xNext, y1, zNext));
+            }
+
+            // Highlight start and end points
+            highlightPoint(endPos, 'end', true);
+
+            // Animate path in reverse (from end to start)
+            animatePath(pathPoints, startPos, 'reverse');
+        }
+
+        function highlightPoint(position, type, isStart) {
+            // Remove previous highlights
+            const previousHighlights = ladderGroup.children.filter(child =>
+                child.userData && child.userData.isHighlight
+            );
+            previousHighlights.forEach(highlight => ladderGroup.remove(highlight));
+
+            const radius = 5;
+            const height = levelCount * 0.8;
+            const angleStep = (Math.PI * 2) / playerCount;
+            const angle = position * angleStep;
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+
+            let y, label, color;
+            if (type === 'start') {
+                y = (height / 2) + 0.5;
+                label = startLabels[position] || `${position + 1}번`;
+                color = COLORS.start;
+            } else {
+                y = -(height / 2) - 0.5;
+                label = endLabels[position] || `${position + 1}번`;
+                color = COLORS.end;
+            }
+
+            // Create pulsing sphere
+            const sphereGeometry = new THREE.SphereGeometry(0.25, 16, 16);
+            const sphereMaterial = new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 0.8
+            });
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.set(x, y, z);
+            sphere.userData.isHighlight = true;
+            ladderGroup.add(sphere);
+
+            // Create enlarged text label
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 384;
+            canvas.height = 192;
+
+            const colorStr = '#' + color.toString(16).padStart(6, '0');
+            context.fillStyle = colorStr;
+            context.font = 'Bold 90px Arial';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(label, 192, 96);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.position.set(x, y + (type === 'start' ? 0.3 : -0.3), z);
+            sprite.scale.set(2.5, 1.25, 1);
+            sprite.userData.isHighlight = true;
+            ladderGroup.add(sprite);
+
+            // Pulse animation
+            let pulseDirection = 1;
+            let pulseScale = 1;
+            const pulseInterval = setInterval(() => {
+                if (!sphere.parent) {
+                    clearInterval(pulseInterval);
+                    return;
+                }
+                pulseScale += 0.02 * pulseDirection;
+                if (pulseScale > 1.3 || pulseScale < 1) {
+                    pulseDirection *= -1;
+                }
+                sphere.scale.set(pulseScale, pulseScale, pulseScale);
+            }, 30);
+        }
+
+        function animatePath(points, result, direction) {
+            let currentPointIndex = 0;
+            const animationSpeed = 50;
+
+            const interval = setInterval(() => {
+                if (currentPointIndex >= points.length - 1) {
+                    clearInterval(interval);
+                    isAnimating = false;
+
+                    // Highlight destination point
+                    if (direction === 'forward') {
+                        highlightPoint(result, 'end', false);
+                        const resultLabel = endLabels[result] || `${result + 1}번`;
+                        document.getElementById('result').textContent =
+                            `결과: ${resultLabel} 도착! 🎉`;
+                    } else {
+                        highlightPoint(result, 'start', false);
+                        const resultLabel = startLabels[result] || `${result + 1}번`;
+                        document.getElementById('result').textContent =
+                            `출발점: ${resultLabel} 🎯`;
+                    }
+                    return;
+                }
+
+                // Create thick path line using Mesh instead of Line for better visibility
+                const pathGeometry = new THREE.TubeGeometry(
+                    new THREE.CatmullRomCurve3([
+                        points[currentPointIndex],
+                        points[currentPointIndex + 1]
+                    ]),
+                    2,
+                    0.08,
+                    8,
+                    false
+                );
+                const pathMaterial = new THREE.MeshStandardMaterial({
+                    color: COLORS.path,
+                    emissive: COLORS.path,
+                    emissiveIntensity: 0.4
+                });
+                const pathMesh = new THREE.Mesh(pathGeometry, pathMaterial);
+                pathMesh.userData.isPath = true;
+                ladderGroup.add(pathMesh);
+
+                // Add animated sphere with smaller size
+                const sphereGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+                const sphereMaterial = new THREE.MeshStandardMaterial({
+                    color: COLORS.path,
+                    emissive: COLORS.path,
+                    emissiveIntensity: 0.6
+                });
+                const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                sphere.position.copy(points[currentPointIndex + 1]);
+                sphere.userData.isPath = true;
+                ladderGroup.add(sphere);
+
+                currentPointIndex++;
+            }, animationSpeed);
+        }
+
+        function showAllResults() {
+            const table = document.getElementById('resultsTable');
+            table.innerHTML = '';
+
+            for (let i = 0; i < playerCount; i++) {
+                const startLabel = startLabels[i] || `${i + 1}번`;
+                const endLabel = endLabels[ladderResults[i]] || `${ladderResults[i] + 1}번`;
+
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                item.innerHTML = `
+                    <span class="result-start">${startLabel}</span>
+                    <span class="result-arrow">→</span>
+                    <span class="result-end">${endLabel}</span>
+                `;
+                table.appendChild(item);
+            }
+
+            document.getElementById('resultsPopup').classList.add('active');
+        }
+
+        function closeResultsPopup() {
+            document.getElementById('resultsPopup').classList.remove('active');
+        }
+
+        function restartGame() {
+            // Reset to setup phase
+            gameStarted = false;
+            closeResultsPopup();
+
+            document.getElementById('playingPhase').classList.remove('active');
+            document.getElementById('setupPhase').classList.add('active');
+
+            // Clear ladder
+            if (ladderGroup) {
+                scene.remove(ladderGroup);
+                ladderGroup = null;
+            }
+
+            // Reset labels
+            initializeLabels();
+            updateLabelInputs();
+
+            // Reset result
+            document.getElementById('result').textContent = '';
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function resetCamera() {
+            rotation = { x: 0, y: 0 };
+            zoom = 15;
+            updateCamera();
+        }
+
+        function updateCamera() {
+            const distance = zoom;
+            camera.position.x = distance * Math.sin(rotation.y) * Math.cos(rotation.x);
+            camera.position.y = distance * Math.sin(rotation.x);
+            camera.position.z = distance * Math.cos(rotation.y) * Math.cos(rotation.x);
+            camera.lookAt(0, 0, 0);
+        }
+
+        function onMouseDown(e) {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        }
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - previousMousePosition.x;
+            const deltaY = e.clientY - previousMousePosition.y;
+
+            rotation.y += deltaX * 0.005;
+            rotation.x += deltaY * 0.005;
+
+            rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotation.x));
+
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+            updateCamera();
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+        }
+
+        function onWheel(e) {
+            e.preventDefault();
+            zoom += e.deltaY * 0.01;
+            zoom = Math.max(8, Math.min(30, zoom));
+            updateCamera();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (ladderGroup && !isDragging && !isAnimating && gameStarted) {
+                ladderGroup.rotation.y += 0.002;
+            }
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

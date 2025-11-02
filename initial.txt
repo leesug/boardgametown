@@ -1,0 +1,13 @@
+supabase
+
+boardgametown
+5/K+9W*Nm.M9i.Q
+
+프로젝트 명
+boardgametown
+
+프로젝트 url
+https://hoszcmgjmjjximzxdfuk.supabase.co
+
+API
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhvc3pjbWdqbWpqeGltenhkZnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2NjIxODcsImV4cCI6MjA3NjIzODE4N30.QUE9wCCbrnRHGKbAapPTC_PPxnbRKmwXuJqh16pyZO0

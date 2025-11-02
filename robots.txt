@@ -1,0 +1,40 @@
+# 그레이트 킹덤 보드게임 - robots.txt
+# 검색엔진 크롤러에게 어떤 페이지를 크롤링할 수 있는지 알려줍니다
+
+# 모든 검색엔진 허용
+User-agent: *
+Allow: /
+
+# Sitemap 위치 (구글, 네이버 등이 자동으로 찾을 수 있도록)
+Sitemap: https://boardgametown.netlify.app/sitemap.xml
+
+# 크롤링 제외할 폴더/파일 (필요시 추가)
+# 예시:
+# Disallow: /admin/
+# Disallow: /temp/
+# Disallow: /*.json$
+
+# 특정 검색엔진별 설정 (필요시)
+# Google
+User-agent: Googlebot
+Allow: /
+
+# Naver
+User-agent: Yeti
+Allow: /
+
+# Bing
+User-agent: Bingbot
+Allow: /
+
+# 크롤링 속도 조절 (초당 요청 수)
+# 서버 부하가 걱정된다면 활성화
+# Crawl-delay: 10
+
+# 이미지 크롤링 허용
+User-agent: Googlebot-Image
+Allow: /images/
+
+# 모바일 크롤링 허용
+User-agent: Googlebot-Mobile
+Allow: /

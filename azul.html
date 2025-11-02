@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 아줄 (Azul) - 포르투갈 타일 게임</title>
+    <style>
+        /* ===== 전역 스타일 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+            color: #ECF0F1;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        /* ===== 게임 컨테이너 ===== */
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ===== 헤더 ===== */
+        .game-header {
+            text-align: center;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .game-header h1 {
+            font-size: 2em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-status {
+            font-size: 1.1em;
+            margin: 8px 0;
+        }
+
+        .round-info {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 0 10px;
+        }
+
+        /* ===== 버튼 스타일 ===== */
+        .button-group {
+            margin-top: 10px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.95em;
+            margin: 0 5px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 홈 버튼 특별 스타일 */
+        .button-group button:first-child {
+            background: #2ecc71;
+        }
+
+        .button-group button:first-child:hover {
+            background: #27ae60;
+        }
+
+        /* ===== 보드 컨테이너 (수평 배치) ===== */
+        .boards-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .player-board-container {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 10px;
+            min-height: 350px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 턴이 아닐 때 어둡게 */
+        .player-board-container.inactive {
+            opacity: 0.5;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* 현재 턴일 때 밝게 하이라이트 */
+        .player-board-container.active {
+            opacity: 1;
+            background: rgba(52, 152, 219, 0.15);
+            border: 3px solid #3498db;
+            box-shadow: 0 0 30px rgba(52, 152, 219, 0.4);
+        }
+
+        .player-board-container.active::before {
+            content: '현재 턴';
+            position: absolute;
+            top: 10px;
+            right: 110px;
+            background: #3498db;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            z-index: 10;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        .player-board-header {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+        /* 플레이어 A는 파란색 계열 */
+        #player-a-container .player-name {
+            color: #5dade2;
+        }
+
+        #player-a-container.active {
+            background: rgba(93, 173, 226, 0.15);
+            border-color: #5dade2;
+            box-shadow: 0 0 30px rgba(93, 173, 226, 0.4);
+        }
+
+        #player-a-container.active::before {
+            background: #5dade2;
+            right: 110px;
+        }
+
+        /* 플레이어 B는 주황색 계열 */
+        #player-b-container .player-name {
+            color: #f39c12;
+        }
+
+        #player-b-container.active {
+            background: rgba(243, 156, 18, 0.15);
+            border-color: #f39c12;
+            box-shadow: 0 0 30px rgba(243, 156, 18, 0.4);
+        }
+
+        #player-b-container.active::before {
+            background: #f39c12;
+            right: 110px;
+        }
+
+        .player-board-container .player-board {
+            transform: scale(0.85);
+            transform-origin: top left;
+        }
+
+        /* ===== 공장 영역 ===== */
+        .factories-area {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .factories-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            align-items: start;
+        }
+
+        .factories-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .factory {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid #7f8c8d;
+            border-radius: 50%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .factory:hover {
+            border-color: #3498db;
+            transform: scale(1.05);
+        }
+
+        .factory.selectable {
+            border-color: #2ecc71;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+        }
+
+        .center-area {
+            min-height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px dashed #95a5a6;
+            border-radius: 15px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .center-area:hover {
+            border-color: #3498db;
+        }
+
+        .center-area.selectable {
+            border-color: #2ecc71;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+        }
+
+        .center-area h4 {
+            width: 100%;
+            text-align: center;
+            color: #95a5a6;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        /* ===== 타일 스타일 ===== */
+        .tile {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            border: 2px solid rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tile:hover {
+            transform: scale(1.1);
+        }
+
+        .tile.blue { background: #4A90E2; }
+        .tile.yellow { background: #F5D547; }
+        .tile.red { background: #E74C3C; }
+        .tile.black { background: #2C3E50; }
+        .tile.white { background: #ECF0F1; }
+        .tile.start-marker {
+            background: #e67e22;
+            border-radius: 50%;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* ===== 플레이어 보드 ===== */
+        .player-board {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .score {
+            color: #2ecc71;
+            font-weight: bold;
+            font-size: 1.4em;
+        }
+
+        /* ===== 패턴 라인 ===== */
+        .pattern-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .pattern-line {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .pattern-line:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .pattern-line.selectable {
+            background: rgba(46, 204, 113, 0.2);
+            border: 2px solid #2ecc71;
+        }
+
+        .pattern-slot {
+            width: 30px;
+            height: 30px;
+            border: 2px dashed #7f8c8d;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pattern-slot.filled {
+            border-style: solid;
+        }
+
+        /* ===== 벽 ===== */
+        .wall {
+            display: grid;
+            grid-template-columns: repeat(5, 34px);
+            gap: 4px;
+        }
+
+        .wall-slot {
+            width: 34px;
+            height: 34px;
+            border: 2px solid #7f8c8d;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .wall-slot::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.2;
+            border-radius: 5px;
+        }
+
+        .wall-slot.blue::before { background: #4A90E2; }
+        .wall-slot.yellow::before { background: #F5D547; }
+        .wall-slot.red::before { background: #E74C3C; }
+        .wall-slot.black::before { background: #2C3E50; }
+        .wall-slot.white::before { background: #ECF0F1; }
+
+        .wall-slot.filled {
+            border-width: 3px;
+        }
+
+        .wall-slot.filled.blue { background: #4A90E2; border-color: #2C5AA0; }
+        .wall-slot.filled.yellow { background: #F5D547; border-color: #C4A836; }
+        .wall-slot.filled.red { background: #E74C3C; border-color: #C0392B; }
+        .wall-slot.filled.black { background: #2C3E50; border-color: #1A252F; }
+        .wall-slot.filled.white { background: #ECF0F1; border-color: #BDC3C7; }
+
+        /* ===== 바닥 라인 ===== */
+        .floor-line {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(231, 76, 60, 0.2);
+            border-radius: 5px;
+        }
+
+        .floor-line h4 {
+            margin-bottom: 6px;
+            color: #e74c3c;
+            font-size: 0.9em;
+        }
+
+        .floor-slots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .floor-slot {
+            width: 30px;
+            height: 30px;
+            border: 2px dashed #e74c3c;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .floor-penalty {
+            position: absolute;
+            bottom: -16px;
+            font-size: 0.75em;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        /* ===== 섹션 제목 ===== */
+        .section-title {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        /* ===== 모달 (규칙 설명) ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background: #34495E;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 800px;
+            color: #ECF0F1;
+        }
+
+        .modal-content h2 {
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .modal-content h3 {
+            color: #2ecc71;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .modal-content ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #e74c3c;
+        }
+
+        .close-modal:hover {
+            color: #c0392b;
+        }
+
+        /* ===== 게임 종료 팝업 ===== */
+        .game-over-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 998;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 999;
+            min-width: 450px;
+            border: 4px solid #f39c12;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .game-over h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #f39c12;
+            text-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(243, 156, 18, 0.5); }
+            50% { text-shadow: 0 0 30px rgba(243, 156, 18, 0.8), 0 0 40px rgba(243, 156, 18, 0.6); }
+        }
+
+        .game-over .winner-announcement {
+            font-size: 2em;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(46, 204, 113, 0.2);
+            border-radius: 10px;
+            border: 2px solid #2ecc71;
+        }
+
+        .game-over .winner-announcement.draw {
+            background: rgba(52, 152, 219, 0.2);
+            border-color: #3498db;
+        }
+
+        .game-over .final-scores {
+            margin: 30px 0;
+            font-size: 1.4em;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .game-over .final-scores p {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .game-over .final-scores p:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .game-over button {
+            font-size: 1.2em;
+            padding: 15px 40px;
+            margin-top: 20px;
+            background: #2ecc71;
+            width: auto;
+        }
+
+        .game-over button:hover {
+            background: #27ae60;
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .game-over {
+                min-width: 90%;
+                padding: 30px 20px;
+            }
+
+            .game-over h2 {
+                font-size: 2em;
+            }
+
+            .game-over .winner-announcement {
+                font-size: 1.5em;
+            }
+
+            .game-over .final-scores {
+                font-size: 1.2em;
+            }
+        }
+
+        /* ===== 애니메이션 ===== */
+        @keyframes tileMove {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .tile-moving {
+            animation: tileMove 0.3s ease;
+        }
+
+        /* ===== 반응형 ===== */
+        @media (max-width: 1200px) {
+            .boards-container {
+                grid-template-columns: 1fr;
+            }
+
+            .player-board-container .player-board {
+                transform: scale(0.7);
+            }
+
+            .factories-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .game-header h1 {
+                font-size: 1.8em;
+            }
+
+            .factory {
+                width: 80px;
+                height: 80px;
+            }
+
+            .tile {
+                width: 25px;
+                height: 25px;
+            }
+
+            .pattern-slot, .floor-slot {
+                width: 25px;
+                height: 25px;
+            }
+
+            .wall {
+                grid-template-columns: repeat(5, 28px);
+            }
+
+            .wall-slot {
+                width: 28px;
+                height: 28px;
+            }
+
+            .player-board-container .player-board {
+                transform: scale(0.6);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 게임 헤더 -->
+        <div class="game-header">
+            <h1>🎨 아줄 (Azul)</h1>
+            <div class="game-status">
+                <span class="round-info">라운드: <span id="round-number">1</span></span>
+                <span class="round-info" id="current-turn-display">현재 턴: 플레이어 1</span>
+            </div>
+            <div class="button-group">
+                <button onclick="window.location.href='index.html'">🏠 홈으로</button>
+                <button onclick="showRules()">📖 게임 규칙</button>
+                <button onclick="restartGame()">🔄 새 게임</button>
+                <button onclick="toggleAI()" id="ai-toggle">👤 플레이어 B: 사람</button>
+            </div>
+        </div>
+
+        <!-- 플레이어 보드들 (수평 배치) -->
+        <div class="boards-container">
+            <!-- 플레이어 A 보드 -->
+            <div class="player-board-container" id="player-a-container">
+                <div class="player-board-header">
+                    <span class="player-name">🔵 플레이어 A</span>
+                    <span class="score" id="player-a-score">0점</span>
+                </div>
+                <div id="player-a-board"></div>
+            </div>
+
+            <!-- 플레이어 B 보드 -->
+            <div class="player-board-container" id="player-b-container">
+                <div class="player-board-header">
+                    <span class="player-name">🟠 플레이어 B</span>
+                    <span class="score" id="player-b-score">0점</span>
+                </div>
+                <div id="player-b-board"></div>
+            </div>
+        </div>
+
+        <!-- 공장 영역 -->
+        <div class="factories-area">
+            <div class="factories-content">
+                <div>
+                    <h3 class="section-title">🏭 공장 디스플레이</h3>
+                    <div class="factories-container" id="factories"></div>
+                </div>
+                <div>
+                    <h3 class="section-title">🎯 중앙 영역</h3>
+                    <div class="center-area" id="center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 규칙 모달 -->
+    <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeRules()">&times;</span>
+            <h2>🎨 아줄 게임 규칙</h2>
+            
+            <h3>게임 목표</h3>
+            <p>포르투갈 타일 장인이 되어 궁전 벽을 아름답게 장식하고 가장 많은 점수를 획득하세요!</p>
+            
+            <h3>게임 진행</h3>
+            <ul>
+                <li><strong>1단계:</strong> 공장에 타일 4개씩 배치</li>
+                <li><strong>2단계:</strong> 턴을 돌아가며 타일 선택
+                    <ul>
+                        <li>공장 또는 중앙에서 같은 색 타일 전부 가져가기</li>
+                        <li>공장에서 선택 시, 나머지는 중앙으로 이동</li>
+                        <li>중앙에서 처음 가져가는 사람은 시작 마커(-1점) 획득</li>
+                        <li>패턴 라인 중 한 줄에 배치 (같은 색만 가능)</li>
+                    </ul>
+                </li>
+                <li><strong>3단계:</strong> 라운드 종료
+                    <ul>
+                        <li>완성된 패턴 라인의 타일 1개를 벽으로 이동</li>
+                        <li>점수 계산 (기본 1점 + 인접 타일 보너스)</li>
+                        <li>바닥 라인 벌점 처리</li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <h3>점수 계산</h3>
+            <ul>
+                <li>타일 배치: 1점 (기본)</li>
+                <li>가로 인접 타일: 각 +1점</li>
+                <li>세로 인접 타일: 각 +1점</li>
+                <li>바닥 라인 벌점: -1, -1, -2, -2, -2, -3, -3</li>
+            </ul>
+            
+            <h3>게임 종료</h3>
+            <p>누군가 벽의 가로줄 1개를 완성하면 게임 종료</p>
+            <ul>
+                <li>가로줄 완성: 줄당 +2점</li>
+                <li>세로줄 완성: 줄당 +7점</li>
+                <li>같은 색 5개: 색당 +10점</li>
+            </ul>
+            
+            <button onclick="closeRules()" style="margin-top: 20px; width: 100%;">닫기</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== 게임 상수 =====
+        const COLORS = ['blue', 'yellow', 'red', 'black', 'white'];
+        const TILES_PER_COLOR = 20;
+        const TILES_PER_FACTORY = 4;
+        const WALL_PATTERN = [
+            ['blue', 'yellow', 'red', 'black', 'white'],
+            ['white', 'blue', 'yellow', 'red', 'black'],
+            ['black', 'white', 'blue', 'yellow', 'red'],
+            ['red', 'black', 'white', 'blue', 'yellow'],
+            ['yellow', 'red', 'black', 'white', 'blue']
+        ];
+        const FLOOR_PENALTIES = [-1, -1, -2, -2, -2, -3, -3];
+
+        // ===== 게임 상태 =====
+        let game = {
+            players: [],
+            factories: [],
+            center: [],
+            currentPlayer: 0,
+            round: 1,
+            bag: [],
+            discard: [],
+            gameOver: false,
+            aiEnabled: false,
+            selectedTiles: null,
+            selectedSource: null
+        };
+
+        // ===== 플레이어 클래스 =====
+        class Player {
+            constructor(name, isAI = false) {
+                this.name = name;
+                this.isAI = isAI;
+                this.score = 0;
+                this.patternLines = [[], [], [], [], []]; // 1~5칸
+                this.wall = Array(5).fill(null).map(() => Array(5).fill(false));
+                this.floor = [];
+                this.hasStartMarker = false;
+            }
+
+            // 패턴 라인이 가득 찼는지 확인
+            isPatternLineFull(lineIndex) {
+                return this.patternLines[lineIndex].length === lineIndex + 1;
+            }
+
+            // 패턴 라인에 색을 배치할 수 있는지 확인
+            canPlaceInPatternLine(lineIndex, color) {
+                const line = this.patternLines[lineIndex];
+                // 빈 줄이거나 같은 색이 있어야 함
+                if (line.length === 0) {
+                    // 벽에 이미 해당 색이 있는지 확인
+                    const wallColorIndex = WALL_PATTERN[lineIndex].indexOf(color);
+                    return !this.wall[lineIndex][wallColorIndex];
+                }
+                return line[0] === color;
+            }
+
+            // 패턴 라인에 타일 추가
+            addToPatternLine(lineIndex, tiles) {
+                const maxCapacity = lineIndex + 1;
+                const currentCount = this.patternLines[lineIndex].length;
+                const canAdd = Math.min(tiles.length, maxCapacity - currentCount);
+                
+                for (let i = 0; i < canAdd; i++) {
+                    this.patternLines[lineIndex].push(tiles[i]);
+                }
+
+                // 넘치는 타일은 바닥으로
+                for (let i = canAdd; i < tiles.length; i++) {
+                    this.addToFloor(tiles[i]);
+                }
+            }
+
+            // 바닥 라인에 타일 추가
+            addToFloor(tile) {
+                if (this.floor.length < 7) {
+                    this.floor.push(tile);
+                }
+            }
+
+            // 벽에 타일 배치 및 점수 계산
+            scoreWallTile(row, col) {
+                this.wall[row][col] = true;
+                let score = 1;
+                let horizontalCount = 1;
+                let verticalCount = 1;
+
+                // 가로 방향 체크
+                let left = col - 1;
+                while (left >= 0 && this.wall[row][left]) {
+                    horizontalCount++;
+                    left--;
+                }
+                let right = col + 1;
+                while (right < 5 && this.wall[row][right]) {
+                    horizontalCount++;
+                    right++;
+                }
+
+                // 세로 방향 체크
+                let up = row - 1;
+                while (up >= 0 && this.wall[up][col]) {
+                    verticalCount++;
+                    up--;
+                }
+                let down = row + 1;
+                while (down < 5 && this.wall[down][col]) {
+                    verticalCount++;
+                    down++;
+                }
+
+                // 점수 계산
+                if (horizontalCount > 1) score += horizontalCount - 1;
+                if (verticalCount > 1) score += verticalCount - 1;
+
+                return score;
+            }
+
+            // 라운드 종료 시 점수 계산
+            endRoundScoring() {
+                let roundScore = 0;
+
+                // 완성된 패턴 라인 처리
+                for (let i = 0; i < 5; i++) {
+                    if (this.isPatternLineFull(i)) {
+                        const color = this.patternLines[i][0];
+                        const colIndex = WALL_PATTERN[i].indexOf(color);
+                        
+                        // 벽에 배치하고 점수 계산
+                        roundScore += this.scoreWallTile(i, colIndex);
+
+                        // 패턴 라인의 나머지 타일들을 버림 더미로
+                        // (벽에 배치한 1개는 게임에서 영구 제거, 나머지만 버림 더미로)
+                        for (let j = 1; j < this.patternLines[i].length; j++) {
+                            game.discard.push(this.patternLines[i][j]);
+                        }
+                        this.patternLines[i] = [];
+                    }
+                }
+
+                // 바닥 라인 벌점
+                for (let i = 0; i < this.floor.length; i++) {
+                    if (i < FLOOR_PENALTIES.length) {
+                        roundScore += FLOOR_PENALTIES[i];
+                    }
+                }
+
+                // 시작 마커 처리
+                if (this.hasStartMarker) {
+                    game.currentPlayer = game.players.indexOf(this);
+                    this.hasStartMarker = false;
+                }
+
+                // 바닥 라인의 타일들을 버림 더미로 (시작 마커 제외)
+                for (let i = 0; i < this.floor.length; i++) {
+                    if (this.floor[i] !== 'start') {
+                        game.discard.push(this.floor[i]);
+                    }
+                }
+                this.floor = [];
+
+                // 점수는 0 이하로 내려가지 않음
+                this.score = Math.max(0, this.score + roundScore);
+
+                return roundScore;
+            }
+
+            // 게임 종료 시 보너스 점수
+            finalScoring() {
+                let bonus = 0;
+
+                // 가로줄 완성 체크
+                for (let row = 0; row < 5; row++) {
+                    if (this.wall[row].every(cell => cell)) {
+                        bonus += 2;
+                    }
+                }
+
+                // 세로줄 완성 체크
+                for (let col = 0; col < 5; col++) {
+                    let complete = true;
+                    for (let row = 0; row < 5; row++) {
+                        if (!this.wall[row][col]) {
+                            complete = false;
+                            break;
+                        }
+                    }
+                    if (complete) bonus += 7;
+                }
+
+                // 같은 색 5개 완성 체크
+                for (let colorIndex = 0; colorIndex < 5; colorIndex++) {
+                    let complete = true;
+                    for (let row = 0; row < 5; row++) {
+                        const col = WALL_PATTERN[row].indexOf(COLORS[colorIndex]);
+                        if (!this.wall[row][col]) {
+                            complete = false;
+                            break;
+                        }
+                    }
+                    if (complete) bonus += 10;
+                }
+
+                this.score += bonus;
+                return bonus;
+            }
+
+            // 게임 종료 조건 체크
+            hasCompletedRow() {
+                return this.wall.some(row => row.every(cell => cell));
+            }
+        }
+
+        // ===== 게임 초기화 =====
+        function initGame() {
+            game.players = [
+                new Player('플레이어 A', false),
+                new Player('플레이어 B', game.aiEnabled)
+            ];
+            game.currentPlayer = 0;
+            game.round = 1;
+            game.gameOver = false;
+            game.selectedTiles = null;
+            game.selectedSource = null;
+
+            // 타일 가방 초기화
+            game.bag = [];
+            for (let color of COLORS) {
+                for (let i = 0; i < TILES_PER_COLOR; i++) {
+                    game.bag.push(color);
+                }
+            }
+            shuffleArray(game.bag);
+
+            game.discard = [];
+            game.factories = [];
+            game.center = [];
+
+            startNewRound();
+            renderGame();
+
+            // 첫 플레이어가 AI면 AI 턴 시작
+            if (game.players[game.currentPlayer].isAI) {
+                setTimeout(aiTurn, 1000);
+            }
+        }
+
+        // ===== 새 라운드 시작 =====
+        function startNewRound() {
+            console.log('========================================');
+            console.log('새 라운드 시작:', game.round);
+            console.log('가방에 남은 타일:', game.bag.length);
+            console.log('버린 타일:', game.discard.length);
+
+            // 공장 개수 설정 (2인: 5개)
+            const factoryCount = 5;
+            game.factories = [];
+
+            // 각 공장에 타일 4개씩 배치
+            for (let i = 0; i < factoryCount; i++) {
+                const factoryTiles = [];
+                for (let j = 0; j < TILES_PER_FACTORY; j++) {
+                    // 가방이 비면 버린 타일 다시 섞어서 추가
+                    if (game.bag.length === 0) {
+                        if (game.discard.length > 0) {
+                            console.log('가방이 비었습니다. 버린 타일을 다시 섞습니다:', game.discard.length + '개');
+                            game.bag = [...game.discard];
+                            game.discard = [];
+                            shuffleArray(game.bag);
+                        } else {
+                            console.warn('가방과 버림 타일이 모두 비었습니다!');
+                            break;
+                        }
+                    }
+                    if (game.bag.length > 0) {
+                        factoryTiles.push(game.bag.pop());
+                    }
+                }
+                
+                // 타일이 있는 공장만 추가
+                if (factoryTiles.length > 0) {
+                    game.factories.push(factoryTiles);
+                    console.log(`공장 ${i}: ${factoryTiles.length}개 타일 배치`);
+                }
+            }
+
+            // 중앙은 비우고 시작 마커만 추가
+            game.center = ['start'];
+            
+            console.log('라운드 준비 완료. 공장 수:', game.factories.length);
+            console.log('========================================');
+        }
+
+        // ===== 타일 선택 처리 =====
+        function selectTilesFromFactory(factoryIndex, color) {
+            if (game.gameOver) return;
+
+            const factory = game.factories[factoryIndex];
+            const selectedTiles = factory.filter(t => t === color);
+            const remainingTiles = factory.filter(t => t !== color);
+
+            if (selectedTiles.length === 0) return;
+
+            console.log(game.players[game.currentPlayer].name + '가 공장에서 선택:', color, selectedTiles.length + '개');
+
+            // 선택한 타일 저장
+            game.selectedTiles = selectedTiles;
+            game.selectedSource = { type: 'factory', index: factoryIndex };
+
+            // 나머지 타일은 중앙으로
+            game.center.push(...remainingTiles);
+            game.factories[factoryIndex] = [];
+
+            // 패턴 라인 선택 대기
+            renderGame();
+        }
+
+        function selectTilesFromCenter(color) {
+            if (game.gameOver) return;
+
+            const selectedTiles = game.center.filter(t => t === color);
+            if (selectedTiles.length === 0) return;
+
+            console.log(game.players[game.currentPlayer].name + '가 중앙에서 선택:', color, selectedTiles.length + '개');
+
+            game.selectedTiles = selectedTiles;
+            game.selectedSource = { type: 'center' };
+
+            // 시작 마커 확인
+            const hasStartMarker = game.center.includes('start');
+            game.center = game.center.filter(t => t !== color && t !== 'start');
+
+            if (hasStartMarker) {
+                console.log(game.players[game.currentPlayer].name + '가 시작 마커 획득');
+                game.players[game.currentPlayer].hasStartMarker = true;
+                game.players[game.currentPlayer].floor.push('start');
+            }
+
+            renderGame();
+        }
+
+        // ===== 패턴 라인에 배치 =====
+        function placeInPatternLine(lineIndex) {
+            if (!game.selectedTiles) {
+                console.error('placeInPatternLine: selectedTiles가 null입니다!');
+                return;
+            }
+
+            const player = game.players[game.currentPlayer];
+            const color = game.selectedTiles[0];
+
+            console.log(`${player.name}가 패턴 라인 ${lineIndex + 1}에 ${color} 타일 ${game.selectedTiles.length}개 배치 시도`);
+
+            // 사람 플레이어의 경우 배치 가능 여부 확인
+            if (!player.isAI && !player.canPlaceInPatternLine(lineIndex, color)) {
+                alert('이 줄에는 해당 색을 배치할 수 없습니다!');
+                return;
+            }
+
+            player.addToPatternLine(lineIndex, game.selectedTiles);
+            game.selectedTiles = null;
+            game.selectedSource = null;
+
+            console.log(`${player.name} 배치 완료. 패턴 라인 상태:`, player.patternLines[lineIndex]);
+
+            // 턴 종료 체크
+            const roundOver = isRoundOver();
+            
+            if (roundOver) {
+                console.log('라운드 종료 - endRound 호출');
+                endRound();
+                // endRound 내부에서 renderGame과 AI 턴 체크를 함
+            } else {
+                nextTurn();
+                renderGame();
+
+                // 다음 플레이어가 AI면 AI 턴 실행
+                if (!game.gameOver && game.players[game.currentPlayer].isAI) {
+                    console.log('다음 플레이어는 AI - aiTurn 호출');
+                    setTimeout(aiTurn, 800);
+                }
+            }
+        }
+
+        // ===== 라운드 종료 확인 =====
+        function isRoundOver() {
+            const allFactoriesEmpty = game.factories.every(f => f.length === 0);
+            const centerEmpty = game.center.length === 0;
+            const isOver = allFactoriesEmpty && centerEmpty;
+            
+            if (isOver) {
+                console.log('라운드 종료 조건 충족: 모든 공장과 중앙이 비었습니다');
+            }
+            
+            return isOver;
+        }
+
+        // ===== 라운드 종료 처리 =====
+        function endRound() {
+            console.log('========================================');
+            console.log('라운드 종료:', game.round);
+            
+            // 각 플레이어 점수 계산
+            for (let player of game.players) {
+                const roundScore = player.endRoundScoring();
+                console.log(`${player.name} 라운드 점수: ${roundScore}, 총점: ${player.score}`);
+            }
+
+            // 게임 종료 확인
+            const hasWinner = game.players.some(p => p.hasCompletedRow());
+            if (hasWinner) {
+                console.log('게임 종료 조건 달성!');
+                endGame();
+                return;
+            }
+
+            // 다음 라운드
+            game.round++;
+            console.log('다음 라운드로:', game.round);
+            startNewRound();
+            renderGame();
+
+            // 현재 플레이어가 AI면 AI 턴 시작
+            if (!game.gameOver && game.players[game.currentPlayer].isAI) {
+                console.log('라운드 시작 - AI 턴 시작');
+                setTimeout(aiTurn, 1000);
+            }
+        }
+
+        // ===== 게임 종료 =====
+        function endGame() {
+            game.gameOver = true;
+
+            // 최종 보너스 점수
+            for (let player of game.players) {
+                player.finalScoring();
+            }
+
+            // 승자 결정
+            const player1 = game.players[0];
+            const player2 = game.players[1];
+            const isDraw = player1.score === player2.score;
+            const winner = player1.score > player2.score ? player1 : player2;
+
+            // 오버레이 생성
+            const overlay = document.createElement('div');
+            overlay.className = 'game-over-overlay';
+            overlay.onclick = () => {
+                // 오버레이 클릭 시 닫기
+                overlay.remove();
+                gameOverDiv.remove();
+            };
+
+            // 게임 오버 팝업 생성
+            const gameOverDiv = document.createElement('div');
+            gameOverDiv.className = 'game-over';
+
+            let winnerHTML = '';
+            if (isDraw) {
+                winnerHTML = `
+                    <div class="winner-announcement draw">
+                        <h3>🤝 무승부!</h3>
+                        <p>두 플레이어 모두 훌륭했습니다!</p>
+                    </div>
+                `;
+            } else {
+                const winnerIcon = winner === player1 ? '🔵' : '🟠';
+                const winnerColor = winner === player1 ? '#5dade2' : '#f39c12';
+                winnerHTML = `
+                    <div class="winner-announcement">
+                        <h3 style="color: ${winnerColor};">${winnerIcon} ${winner.name} 승리! 🏆</h3>
+                        <p>${winner.score - (winner === player1 ? player2.score : player1.score)}점 차이로 이겼습니다!</p>
+                    </div>
+                `;
+            }
+
+            gameOverDiv.innerHTML = `
+                <h2>🎉 게임 종료!</h2>
+                ${winnerHTML}
+                <div class="final-scores">
+                    <h3 style="color: #3498db; margin-bottom: 15px;">최종 점수</h3>
+                    <p style="color: #5dade2; font-weight: ${player1 === winner && !isDraw ? 'bold' : 'normal'}; 
+                              font-size: ${player1 === winner && !isDraw ? '1.3em' : '1em'};">
+                        🔵 ${player1.name}: <span style="color: #2ecc71;">${player1.score}점</span>
+                        ${player1 === winner && !isDraw ? ' ✨' : ''}
+                    </p>
+                    <p style="color: #f39c12; font-weight: ${player2 === winner && !isDraw ? 'bold' : 'normal'}; 
+                              font-size: ${player2 === winner && !isDraw ? '1.3em' : '1em'};">
+                        🟠 ${player2.name}: <span style="color: #2ecc71;">${player2.score}점</span>
+                        ${player2 === winner && !isDraw ? ' ✨' : ''}
+                    </p>
+                </div>
+                <button onclick="restartGame(); document.querySelector('.game-over-overlay').remove(); document.querySelector('.game-over').remove();">
+                    🔄 새 게임 시작
+                </button>
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(gameOverDiv);
+
+            // 효과음 대신 콘솔에 로그
+            console.log('🎉 게임 종료!', isDraw ? '무승부!' : `${winner.name} 승리!`);
+        }
+
+        // ===== 다음 턴 =====
+        function nextTurn() {
+            const prevPlayer = game.players[game.currentPlayer].name;
+            game.currentPlayer = (game.currentPlayer + 1) % game.players.length;
+            const nextPlayer = game.players[game.currentPlayer].name;
+            console.log(`턴 전환: ${prevPlayer} → ${nextPlayer}`);
+        }
+
+        // ===== AI 턴 =====
+        function aiTurn() {
+            if (game.gameOver) return;
+
+            const player = game.players[game.currentPlayer];
+            if (!player.isAI) return;
+
+            console.log('========================================');
+            console.log('AI 턴 시작:', player.name);
+            console.log('공장 상태:', game.factories.map(f => f.length));
+            console.log('중앙 상태:', game.center.length, game.center);
+
+            // 공장과 중앙이 모두 비어있으면 라운드 종료
+            if (game.factories.every(f => f.length === 0) && game.center.length === 0) {
+                console.log('AI: 모든 공장과 중앙이 비어있음 - 라운드 종료');
+                endRound();
+                return;
+            }
+
+            // 간단한 AI 로직: 가장 많은 타일을 선택하고, 배치 가능한 첫 번째 줄에 배치
+            let bestMove = null;
+            let maxTiles = 0;
+
+            // 공장에서 선택
+            for (let i = 0; i < game.factories.length; i++) {
+                const factory = game.factories[i];
+                if (factory.length === 0) continue;
+                
+                for (let color of COLORS) {
+                    const count = factory.filter(t => t === color).length;
+                    if (count > 0) {
+                        // 배치 가능한 줄 찾기 (아래부터)
+                        for (let lineIndex = 4; lineIndex >= 0; lineIndex--) {
+                            if (player.canPlaceInPatternLine(lineIndex, color)) {
+                                if (count > maxTiles) {
+                                    maxTiles = count;
+                                    bestMove = {
+                                        source: 'factory',
+                                        factoryIndex: i,
+                                        color: color,
+                                        lineIndex: lineIndex,
+                                        tiles: count
+                                    };
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 중앙에서 선택
+            for (let color of COLORS) {
+                const count = game.center.filter(t => t === color).length;
+                if (count > 0) {
+                    for (let lineIndex = 4; lineIndex >= 0; lineIndex--) {
+                        if (player.canPlaceInPatternLine(lineIndex, color)) {
+                            if (count > maxTiles) {
+                                maxTiles = count;
+                                bestMove = {
+                                    source: 'center',
+                                    color: color,
+                                    lineIndex: lineIndex,
+                                    tiles: count
+                                };
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 움직임 실행
+            if (bestMove) {
+                console.log('AI 최선의 수:', bestMove);
+                
+                setTimeout(() => {
+                    if (bestMove.source === 'factory') {
+                        selectTilesFromFactory(bestMove.factoryIndex, bestMove.color);
+                    } else {
+                        selectTilesFromCenter(bestMove.color);
+                    }
+                    
+                    // 패턴 라인에 배치
+                    setTimeout(() => {
+                        placeInPatternLine(bestMove.lineIndex);
+                    }, 500);
+                }, 500);
+            } else {
+                // 배치 가능한 곳이 없으면 임의로 선택하고 바닥으로
+                console.log('AI: 배치 가능한 곳 없음, 바닥으로 보내기');
+                
+                setTimeout(() => {
+                    // 첫 번째 사용 가능한 타일 선택
+                    let selectedColor = null;
+                    let selectedSource = null;
+                    let selectedIndex = -1;
+
+                    // 공장에서 찾기
+                    for (let i = 0; i < game.factories.length; i++) {
+                        if (game.factories[i].length > 0) {
+                            selectedColor = game.factories[i][0];
+                            selectedSource = 'factory';
+                            selectedIndex = i;
+                            console.log(`AI: 공장 ${i}에서 ${selectedColor} 선택 (바닥으로)`);
+                            break;
+                        }
+                    }
+
+                    // 공장에 없으면 중앙에서
+                    if (!selectedColor) {
+                        for (let color of COLORS) {
+                            if (game.center.filter(t => t === color).length > 0) {
+                                selectedColor = color;
+                                selectedSource = 'center';
+                                console.log(`AI: 중앙에서 ${selectedColor} 선택 (바닥으로)`);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (selectedColor) {
+                        if (selectedSource === 'factory') {
+                            selectTilesFromFactory(selectedIndex, selectedColor);
+                        } else {
+                            selectTilesFromCenter(selectedColor);
+                        }
+
+                        // 바닥으로 보내기
+                        setTimeout(() => {
+                            if (game.selectedTiles) {
+                                console.log('AI: 타일을 바닥으로 보냄:', game.selectedTiles.length + '개');
+                                player.floor.push(...game.selectedTiles);
+                                game.selectedTiles = null;
+                                game.selectedSource = null;
+
+                                // 턴 종료 체크
+                                if (isRoundOver()) {
+                                    console.log('AI: 라운드 종료');
+                                    endRound();
+                                } else {
+                                    console.log('AI: 다음 턴으로');
+                                    nextTurn();
+                                }
+
+                                renderGame();
+                            } else {
+                                console.error('AI: selectedTiles가 null입니다!');
+                                // 강제로 다음 턴
+                                nextTurn();
+                                renderGame();
+                            }
+                        }, 500);
+                    } else {
+                        // 선택할 타일이 전혀 없음 - 라운드 종료
+                        console.log('AI: 선택할 타일이 없음 - 라운드 종료');
+                        if (isRoundOver()) {
+                            endRound();
+                        } else {
+                            nextTurn();
+                        }
+                        renderGame();
+                    }
+                }, 500);
+            }
+        }
+
+        // ===== 게임 렌더링 =====
+        function renderGame() {
+            // 헤더 업데이트
+            document.getElementById('round-number').textContent = game.round;
+            const currentTurnDisplay = document.getElementById('current-turn-display');
+            const currentPlayerName = game.players[game.currentPlayer].name;
+            const playerIcon = game.currentPlayer === 0 ? '🔵' : '🟠';
+            const playerColor = game.currentPlayer === 0 ? '#5dade2' : '#f39c12';
+            
+            currentTurnDisplay.innerHTML = `현재 턴: <span style="color: ${playerColor}; font-weight: bold;">${playerIcon} ${currentPlayerName}</span>`;
+
+            // 공장 렌더링
+            renderFactories();
+
+            // 중앙 렌더링
+            renderCenter();
+
+            // 플레이어 A 보드 렌더링
+            renderPlayerBoard(game.players[0], 'player-a-board', game.currentPlayer === 0);
+            document.getElementById('player-a-score').textContent = `${game.players[0].score}점`;
+            
+            // 플레이어 B 보드 렌더링
+            renderPlayerBoard(game.players[1], 'player-b-board', game.currentPlayer === 1);
+            document.getElementById('player-b-score').textContent = `${game.players[1].score}점`;
+
+            // 보드 컨테이너에 active/inactive 클래스 추가
+            const containerA = document.getElementById('player-a-container');
+            const containerB = document.getElementById('player-b-container');
+
+            if (game.currentPlayer === 0) {
+                containerA.classList.add('active');
+                containerA.classList.remove('inactive');
+                containerB.classList.add('inactive');
+                containerB.classList.remove('active');
+            } else {
+                containerB.classList.add('active');
+                containerB.classList.remove('inactive');
+                containerA.classList.add('inactive');
+                containerA.classList.remove('active');
+            }
+        }
+
+        function renderFactories() {
+            const container = document.getElementById('factories');
+            container.innerHTML = '';
+
+            const isAITurn = game.players[game.currentPlayer].isAI;
+
+            game.factories.forEach((factory, index) => {
+                const factoryDiv = document.createElement('div');
+                factoryDiv.className = 'factory';
+                
+                // 선택 가능한 색상 확인 (AI 턴이 아니고, 타일이 선택되지 않았을 때)
+                if (!isAITurn && !game.selectedTiles && factory.length > 0) {
+                    factoryDiv.classList.add('selectable');
+                }
+
+                factory.forEach(color => {
+                    const tile = createTile(color);
+                    if (!isAITurn) {
+                        tile.onclick = () => {
+                            if (!game.selectedTiles) {
+                                selectTilesFromFactory(index, color);
+                            }
+                        };
+                    }
+                    factoryDiv.appendChild(tile);
+                });
+
+                container.appendChild(factoryDiv);
+            });
+        }
+
+        function renderCenter() {
+            const container = document.getElementById('center');
+            container.innerHTML = '';
+
+            const isAITurn = game.players[game.currentPlayer].isAI;
+
+            if (!isAITurn && !game.selectedTiles && game.center.length > 0) {
+                container.classList.add('selectable');
+            } else {
+                container.classList.remove('selectable');
+            }
+
+            // 비어있을 때 안내 문구
+            if (game.center.length === 0) {
+                const placeholder = document.createElement('h4');
+                placeholder.style.width = '100%';
+                placeholder.style.textAlign = 'center';
+                placeholder.style.color = '#7f8c8d';
+                placeholder.textContent = '중앙 영역 (비어있음)';
+                container.appendChild(placeholder);
+            } else {
+                game.center.forEach(tile => {
+                    const tileDiv = createTile(tile);
+                    if (tile !== 'start' && !isAITurn) {
+                        tileDiv.onclick = () => {
+                            if (!game.selectedTiles) {
+                                selectTilesFromCenter(tile);
+                            }
+                        };
+                    }
+                    container.appendChild(tileDiv);
+                });
+            }
+        }
+
+        function renderPlayerBoard(player, containerId, isCurrentPlayer) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            const boardDiv = document.createElement('div');
+            boardDiv.className = 'player-board';
+
+            // 패턴 라인
+            const patternDiv = document.createElement('div');
+            patternDiv.innerHTML = '<div class="section-title">패턴 라인</div>';
+            const patternLinesDiv = document.createElement('div');
+            patternLinesDiv.className = 'pattern-lines';
+
+            for (let i = 0; i < 5; i++) {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'pattern-line';
+
+                // 현재 턴이고, 타일을 선택했고, 배치 가능한 경우에만 클릭 가능
+                if (isCurrentPlayer && !player.isAI && game.selectedTiles && 
+                    player.canPlaceInPatternLine(i, game.selectedTiles[0])) {
+                    lineDiv.classList.add('selectable');
+                    lineDiv.onclick = () => placeInPatternLine(i);
+                }
+
+                for (let j = 0; j <= i; j++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'pattern-slot';
+                    
+                    if (player.patternLines[i][j]) {
+                        const tile = createTile(player.patternLines[i][j]);
+                        slot.appendChild(tile);
+                        slot.classList.add('filled');
+                    }
+                    
+                    lineDiv.appendChild(slot);
+                }
+
+                patternLinesDiv.appendChild(lineDiv);
+            }
+            patternDiv.appendChild(patternLinesDiv);
+
+            // 벽
+            const wallDiv = document.createElement('div');
+            wallDiv.innerHTML = '<div class="section-title">벽</div>';
+            const wallGrid = document.createElement('div');
+            wallGrid.className = 'wall';
+
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const slot = document.createElement('div');
+                    slot.className = `wall-slot ${WALL_PATTERN[row][col]}`;
+                    
+                    if (player.wall[row][col]) {
+                        slot.classList.add('filled');
+                        const tile = createTile(WALL_PATTERN[row][col]);
+                        tile.style.width = '100%';
+                        tile.style.height = '100%';
+                        slot.appendChild(tile);
+                    }
+                    
+                    wallGrid.appendChild(slot);
+                }
+            }
+            wallDiv.appendChild(wallGrid);
+
+            boardDiv.appendChild(patternDiv);
+            boardDiv.appendChild(wallDiv);
+
+            // 바닥 라인
+            const floorDiv = document.createElement('div');
+            floorDiv.className = 'floor-line';
+            floorDiv.innerHTML = '<h4>바닥 라인 (벌점)</h4>';
+            const floorSlots = document.createElement('div');
+            floorSlots.className = 'floor-slots';
+
+            for (let i = 0; i < 7; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'floor-slot';
+                
+                if (player.floor[i]) {
+                    const tile = createTile(player.floor[i]);
+                    slot.appendChild(tile);
+                }
+
+                const penalty = document.createElement('div');
+                penalty.className = 'floor-penalty';
+                penalty.textContent = FLOOR_PENALTIES[i];
+                slot.appendChild(penalty);
+                
+                floorSlots.appendChild(slot);
+            }
+            floorDiv.appendChild(floorSlots);
+
+            container.appendChild(boardDiv);
+            container.appendChild(floorDiv);
+        }
+
+        function createTile(color) {
+            const tile = document.createElement('div');
+            tile.className = `tile ${color}`;
+            if (color === 'start') {
+                tile.classList.add('start-marker');
+                tile.textContent = '1';
+                tile.title = '시작 마커 (-1점)';
+            }
+            return tile;
+        }
+
+        // ===== 유틸리티 함수 =====
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // ===== UI 함수 =====
+        function showRules() {
+            document.getElementById('rules-modal').style.display = 'block';
+        }
+
+        function closeRules() {
+            document.getElementById('rules-modal').style.display = 'none';
+        }
+
+        function restartGame() {
+            // 게임 오버 메시지와 오버레이 제거
+            const gameOverDiv = document.querySelector('.game-over');
+            const overlay = document.querySelector('.game-over-overlay');
+            if (gameOverDiv) gameOverDiv.remove();
+            if (overlay) overlay.remove();
+            
+            initGame();
+        }
+
+        function toggleAI() {
+            game.aiEnabled = !game.aiEnabled;
+            const btn = document.getElementById('ai-toggle');
+            btn.textContent = game.aiEnabled ? '🤖 플레이어 B: AI' : '👤 플레이어 B: 사람';
+            restartGame();
+        }
+
+        // 모달 외부 클릭시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('rules-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // ===== 게임 시작 =====
+        window.onload = function() {
+            initGame();
+        };
+    </script>
+</body>
+</html>

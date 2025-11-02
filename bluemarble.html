@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부루마블 - 보드게임 타운</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            gap: 30px;
+        }
+
+        /* 좌측 패널 */
+        .left-panel {
+            flex: 0 0 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 우측 보드 영역 */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin: 0;
+        }
+
+        .home-button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .home-button:hover {
+            background: #ff5252;
+        }
+
+        .board {
+            width: 700px;
+            height: 700px;
+            position: relative;
+            border: 3px solid #333;
+            background: #e8f5e9;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .board-dice-btn {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+            padding: 20px 40px;
+            font-size: 20px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+            z-index: 1000;
+        }
+
+        .board-dice-btn:hover {
+            transform: translate(-50%, 50%) scale(1.05);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.5);
+        }
+
+        .board-dice-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .board-dice-btn:disabled:hover {
+            transform: translate(-50%, 50%);
+        }
+
+        /* 보드 중앙 이벤트 메시지 */
+        .board-event-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(255, 255, 255, 0.98);
+            border: 4px solid #4CAF50;
+            border-radius: 20px;
+            padding: 30px 50px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            z-index: 1500;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            max-width: 500px;
+            word-break: keep-all;
+        }
+
+        .board-event-message.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .board-event-message.golden {
+            border-color: #FFD700;
+            background: linear-gradient(135deg, #FFF9E6 0%, #FFFACD 100%);
+            color: #D4AF37;
+        }
+
+        .board-event-message.tax {
+            border-color: #f44336;
+            background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+            color: #c62828;
+        }
+
+        .board-event-message.island {
+            border-color: #2196F3;
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+            color: #1565C0;
+        }
+
+        .cell {
+            position: absolute;
+            border: 2px solid #333;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .cell-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .cell-price {
+            color: #666;
+            font-size: 10px;
+        }
+
+        .cell-owner {
+            margin-top: 3px;
+            font-size: 9px;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        /* 하단 */
+        .cell-bottom {
+            width: 100px;
+            height: 100px;
+            bottom: 0;
+        }
+
+        /* 우측 */
+        .cell-right {
+            width: 100px;
+            height: 96px;
+            right: 0;
+        }
+
+        /* 상단 */
+        .cell-top {
+            width: 100px;
+            height: 100px;
+            top: 0;
+        }
+
+        /* 좌측 */
+        .cell-left {
+            width: 100px;
+            height: 96px;
+            left: 0;
+        }
+
+        .cell-special {
+            background: #fff3cd !important;
+            font-weight: bold;
+        }
+
+        .cell-start {
+            background: #d4edda !important;
+        }
+
+        .player-token {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.5s ease;
+            z-index: 100;
+        }
+
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .player-info {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid transparent;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .player-info.active {
+            border-color: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .player-money {
+            font-size: 24px;
+            color: #2196F3;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .player-properties {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 판매 선택 모달 */
+        .sell-select-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .sell-select-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .sell-select-item:hover {
+            background: #e9ecef;
+        }
+
+        .sell-select-item.selected {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+
+        .sell-select-info {
+            flex: 1;
+        }
+
+        .sell-select-name {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .sell-select-price {
+            color: #2196F3;
+            font-size: 14px;
+        }
+
+        .sell-select-total {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px solid #ffc107;
+        }
+
+        .sell-select-total-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .sell-select-total-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .dice-result {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+            min-height: 30px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .event-log {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .event-log-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .event-log-item {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+            font-size: 13px;
+        }
+
+        .event-log-item:last-child {
+            border-bottom: none;
+        }
+
+        /* 반응형 */
+        @media (max-width: 1400px) {
+            .game-container {
+                flex-direction: column;
+            }
+
+            .left-panel {
+                flex: none;
+                width: 100%;
+            }
+
+            .right-panel {
+                width: 100%;
+            }
+
+            .board {
+                width: 600px;
+                height: 600px;
+            }
+
+            .cell-bottom, .cell-top {
+                width: 85px;
+                height: 85px;
+            }
+
+            .cell-right, .cell-left {
+                width: 85px;
+                height: 82px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .board {
+                width: 100%;
+                max-width: 500px;
+                height: auto;
+                aspect-ratio: 1;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .board-event-message {
+                font-size: 20px;
+                padding: 20px 30px;
+                max-width: 350px;
+            }
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .modal-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-text {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #666;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        /* 주사위 애니메이션 */
+        .dice-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3000;
+            display: none;
+        }
+
+        .dice-animation.active {
+            display: block;
+        }
+
+        .dice-cube {
+            width: 150px;
+            height: 150px;
+            background: white;
+            border: 5px solid #333;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: rollDice 0.6s ease-in-out;
+        }
+
+        @keyframes rollDice {
+            0% { transform: rotate(0deg) scale(0.5); opacity: 0; }
+            50% { transform: rotate(360deg) scale(1.2); }
+            100% { transform: rotate(720deg) scale(1); opacity: 1; }
+        }
+
+        .dice-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2999;
+            display: none;
+        }
+
+        .dice-overlay.active {
+            display: block;
+        }
+
+        /* 건물 레벨 표시 */
+        .building-level {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: #ff9800;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 좌측 패널 -->
+        <div class="left-panel">
+            <!-- 헤더 -->
+            <div class="header">
+                <h1>🏠 부루마블</h1>
+                <button class="home-button" id="home-btn">🏠 홈으로</button>
+            </div>
+
+            <!-- 플레이어 정보 -->
+            <div class="info-panel">
+                <div class="player-info" id="player1-info">
+                    <div class="player-name" style="color: #2196F3;">👤 플레이어</div>
+                    <div class="player-money">💰 <span id="player1-money">1,000,000</span>원</div>
+                    <div class="player-properties">보유 땅: <span id="player1-props">0</span>개</div>
+                </div>
+                <div class="player-info" id="player2-info">
+                    <div class="player-name" style="color: #f44336;">🤖 AI</div>
+                    <div class="player-money">💰 <span id="player2-money">1,000,000</span>원</div>
+                    <div class="player-properties">보유 땅: <span id="player2-props">0</span>개</div>
+                </div>
+            </div>
+
+            <!-- 주사위 결과 -->
+            <div class="controls">
+                <div class="dice-result" id="dice-result"></div>
+            </div>
+
+            <!-- 이벤트 로그 -->
+            <div class="event-log">
+                <div class="event-log-title">📋 게임 로그</div>
+                <div id="event-log"></div>
+            </div>
+        </div>
+
+        <!-- 우측 보드 패널 -->
+        <div class="right-panel">
+            <div class="board" id="game-board">
+                <button class="board-dice-btn" id="roll-dice-btn">🎲 주사위 굴리기</button>
+                <!-- 보드 중앙 이벤트 메시지 -->
+                <div class="board-event-message" id="board-event-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 주사위 애니메이션 -->
+    <div class="dice-overlay" id="dice-overlay"></div>
+    <div class="dice-animation" id="dice-animation">
+        <div class="dice-cube" id="dice-cube">🎲</div>
+    </div>
+
+    <!-- 구매 확인 모달 -->
+    <div class="modal" id="purchase-modal">
+        <div class="modal-content">
+            <div class="modal-title">🏠 땅 구매</div>
+            <div class="modal-text" id="purchase-text"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="purchase-confirm-btn">구매</button>
+                <button class="btn" style="background: #666; color: white;" id="purchase-cancel-btn">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 건물 업그레이드 모달 -->
+    <div class="modal" id="upgrade-modal">
+        <div class="modal-content">
+            <div class="modal-title">🏗️ 건물 업그레이드</div>
+            <div class="modal-text" id="upgrade-text"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="upgrade-confirm-btn">업그레이드</button>
+                <button class="btn" style="background: #666; color: white;" id="upgrade-cancel-btn">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 땅 판매 확인 모달 -->
+    <div class="modal" id="sell-modal">
+        <div class="modal-content">
+            <div class="modal-title">💰 땅 판매</div>
+            <div class="modal-text" id="sell-text"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="sell-confirm-btn">판매</button>
+                <button class="btn" style="background: #666; color: white;" id="sell-cancel-btn">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 자금 부족 판매 선택 모달 -->
+    <div class="modal" id="sell-select-modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-title">💸 자금 부족 - 땅 판매</div>
+            <div class="modal-text" id="sell-select-text"></div>
+            <div class="sell-select-list" id="sell-select-list"></div>
+            <div class="sell-select-total">
+                <div class="sell-select-total-label">선택한 땅 판매 금액</div>
+                <div class="sell-select-total-amount" id="sell-select-total">0원</div>
+            </div>
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button class="btn btn-primary" id="sell-selection-confirm-btn">판매하기</button>
+                <button class="btn" style="background: #666; color: white;" id="sell-selection-cancel-btn">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 종료 모달 -->
+    <div class="modal" id="game-over-modal">
+        <div class="modal-content">
+            <div class="modal-title">🎉 게임 종료!</div>
+            <div class="modal-text" id="game-over-text"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="game-over-restart-btn">다시 하기</button>
+                <button class="btn" style="background: #666; color: white;" id="game-over-home-btn">홈으로</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="bluemarble.js"></script>
+</body>
+</html>
